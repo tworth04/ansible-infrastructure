@@ -1,0 +1,21 @@
+---
+- name: Fix /var/tmp mount options in /etc/fstab
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Ensure correct /var/tmp entry in /etc/fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: '^.*\\s+/var/tmp\\s+.*$'
+        line: "{{ ansible_mounts | selectattr('mount', 'equalto', '/var/tmp') | map(attribute='device') | first | default('/dev/mapper/rl-var_tmp') }} /var/tmp xfs defaults,nodev,nosuid 0 0"
+        state: present
+        create: yes
+
+    - name: Remount /var/tmp to apply corrected options
+      ansible.posix.mount:
+        path: /var/tmp
+        src: "{{ ansible_mounts | selectattr('mount', 'equalto', '/var/tmp') | map(attribute='device') | first | default('/dev/mapper/rl-var_tmp') }}"
+        fstype: xfs
+        opts: defaults,nodev,nosuid
+        state: remounted

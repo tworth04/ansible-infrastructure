@@ -1,0 +1,36 @@
+---
+
+- name: Send qualys to /tmp on "{{ ansible_hostname }}"
+  copy:
+    src: "{{ qualys_rpm }}"
+    dest: /tmp/{{ qualys_rpm }}
+
+- name: Install Qualys 
+  yum:
+    name: qualys-cloud-agent 
+    state: absent
+    disable_gpg_check: true
+  async: 60
+  poll: 5
+
+- name: Install Qualys
+  yum:
+    name: /tmp/{{ qualys_rpm }}
+    state: present
+    disable_gpg_check: true
+  async: 60
+  poll: 5
+
+- name: Send qualys proxy settings to /etc/sysconfig/qualys-cloud-agent "{{ ansible_hostname }}"
+  copy:
+    src: "{{ qualys_proxy }}"
+    dest: /etc/sysconfig/qualys-cloud-agent
+
+- name: Activate Qualys Cloud Agent
+  command: "/usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=e5e8cfdb-4aae-4843-880d-655508b0afc6 CustomerId=3c39b84d-9298-f4d8-80f4-1a300ed9df80"
+
+#- name: restart qualys service
+#  systemd_service:
+#    name: qualys-cloud-agent
+#    state: restarted
+#    enabled: true

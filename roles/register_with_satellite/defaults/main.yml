@@ -1,0 +1,12 @@
+katello_rpm: katello.rpm
+sub_man_rpm: 
+  - subscription-manager.rpm
+  - dnf-plugin-subscription-manager-1.28.42-1.el8.x86_64.rpm
+  - python3-cloud-what-1.28.42-1.el8.x86_64.rpm
+  - python3-ethtool-0.14-5.el8.x86_64.rpm
+  - python3-iniparse-0.4-31.el8.noarch.rpm
+  - python3-inotify-0.9.6-13.el8.noarch.rpm
+  - python3-subscription-manager-rhsm-1.28.42-1.el8.x86_64.rpm
+  - subscription-manager.rpm
+  - usermode-1.113-2.el8.x86_64.rpm 
+  - python3-librepo-1.14.2-5.el8.x86_64.rpm

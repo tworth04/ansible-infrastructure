@@ -1,0 +1,5 @@
+mariadb_rocky:
+  - python3-PyMySQL
+  - mariadb-server
+
+mysql_root_password: "{{ vault_mysql_root_password }}"

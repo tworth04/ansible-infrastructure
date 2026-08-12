@@ -1,0 +1,18 @@
+---
+- name: Join system to AD
+  expect:
+    command: "realm join -U {{ bind_username }} EXAMPLE.ADP.AD"
+    responses: 
+      Password for *: "{{ bind_password }}"
+  async: 20
+
+- name: Copy Conf file to /etc/sssd/sssd.conf
+  copy:
+    src: /etc/sssd/sssd.conf
+    dest: /etc/sssd/sssd.conf
+
+- name: restart sssd service
+  systemd_service:
+    name: sssd
+    state: restarted
+    enabled: true

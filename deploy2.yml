@@ -1,0 +1,51 @@
+---
+- hosts: '{{target|default("all")}}'
+#  gather_facts: false 
+  ignore_errors: true
+  become: true
+  serial: 50
+
+  tasks:
+
+#    - name: Replace a localhost entry with our own
+#      lineinfile:
+#        path: /opt/IBM/dsdriver/cfg/db2dsdriver.cfg
+#        search_string: '<database name="DB2APP300" host="vmhost300.example.com" port="50001"'
+#        line: '                <database name="DB2APP300" host="vmhost301.example.com" port="50001"'
+#        backup: true
+#
+#    - name: Replace a localhost entry with our own
+#      lineinfile:
+#        path: /opt/IBM/dsdriver/cfg/db2dsdriver.cfg
+#        search_string: '<dsn alias="DB2APP300" name="DB2APP300" host="vmhost300.example.com" port="50001"/>'
+#        line: '                <dsn alias="DB2APP300" name="DB2APP300" host="vmhost301.example.com" port="50001"/>'
+#
+#    - name: restart apache
+#      systemd_service:
+#        name: httpd
+#        state: restarted
+#
+
+
+    - name: Backups for {{ item }} on {{ ansible_host }}
+      archive:
+        path: "{{ item }}"
+        dest: "{{ item }}.{{ansible_date_time.date}}.tar.gz"
+        owner: webmaster
+        group: webmaster
+      loop:
+#        - /webdata/W1_GUEST_PAYMENT_PORTAL 
+#        -  /webdata/Zend/ZendRoot/public/js/refunds.js
+#        -  /webdata/Zend/ZendRoot/module/Refund/view/refund/refund-approval/get-approval-details.phtml
+#        - /webdata/W1/W1_Services/W1_PublicCFG/ApplicationCFG/PciCFG/TransactionCFG
+#        - /webdata/W1/W1_Services/W1_PublicCTL/ApplicationCTL/PciTokenCTL/PaymentPackage
+#        -  /webdata/Zend/ZendRoot/module/Refund/src/Refund/Form/RefundApprovalForm.php
+        - /webdata/data
+#        - /webdata/W1
+#        - /webdata/svc
+#        - /webdata/Zend/ZendRoot 
+      register: backup_result
+
+    - name: Report backup results
+      debug:
+        var: backup_result

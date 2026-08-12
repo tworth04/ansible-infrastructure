@@ -1,0 +1,34 @@
+---
+- hosts: '{{target|default("all")}}'
+#  gather_facts: false 
+  ignore_errors: true
+  become: true
+  serial: 50
+
+  tasks:
+    - name: create_lv | Display Volume Group
+      debug:
+        var: vg
+        verbosity: 2
+
+    - name: create_lv | creating new LVM logical volume(s)
+      lvol:
+        vg: vgSys
+        lv: "{{ item }}"
+        size: 2G
+        shrink: false
+        opts: "{{ lv.opts | default('') }}"
+        state: present
+      become: true
+      register: lvchanged
+      loop:
+        - mnt_diag
+        - opt_IBM_ITM
+        - opt_IBM1
+
+    - name: create_lv | debug changed attribute
+      debug:
+        var: lvchanged
+
+    - name: create_lv | configuring FS
+      include_tasks: create_fs.yml

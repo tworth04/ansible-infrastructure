@@ -1,0 +1,53 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  tasks:
+    # 1️⃣ Calculate baseline checksums for CIS files
+    - name: Calculate baseline checksums for CIS files
+      ansible.builtin.stat:
+        path: "{{ item }}"
+        checksum_algorithm: sha256
+      register: baseline_checksums
+      loop:
+        - /etc/ansible/roles/cis/files/sudoers
+        - /etc/ansible/roles/cis/files/motd
+        - /etc/ansible/roles/cis/files/issue
+        - /etc/ansible/roles/cis/files/tmout.ksh
+        - /etc/ansible/roles/cis/files/tmout.sh
+        - /etc/ansible/roles/cis/files/tmout.csh
+        - /etc/ansible/roles/cis/files/00-complianceascode-hardening.conf
+        - /etc/ansible/roles/cis/files/01-complianceascode-reinforce-os-defaults.conf
+        - /etc/ansible/roles/cis/files/01-permitrootlogin.conf
+        - /etc/ansible/roles/cis/files/chrony.conf
+        - /etc/ansible/roles/cis/files/99-sysctl.conf
+        - /etc/ansible/roles/cis/files/aide.cron
+        - /etc/ansible/roles/cis/files/journald.conf
+        - /etc/ansible/roles/cis/files/lx-admin
+        - /etc/ansible/roles/cis/files/pam_env.conf
+        - /etc/ansible/roles/cis/files/core.conf
+        - /etc/ansible/roles/cis/files/sshd_config
+        - /etc/ansible/roles/cis/files/CIS.conf
+        - /etc/ansible/roles/cis/files/auditd.conf
+        - /etc/ansible/roles/cis/files/99-localefix.sh
+
+    # 2️⃣ Build checksum dictionary safely
+    - name: Build checksum dictionary
+      ansible.builtin.set_fact:
+        cis_expected_checksums: >-
+          {{
+            dict(
+              baseline_checksums.results
+              | map(attribute='item')
+              | zip(
+                  baseline_checksums.results
+                  | map(attribute='stat.checksum', default='')
+                )
+            )
+          }}
+
+    # 3️⃣ Save checksums to file
+    - name: Save checksums to file
+      ansible.builtin.copy:
+        dest: /etc/ansible/roles/cis/vars/checksums.yml
+        content: "{{ {'cis_expected_checksums': cis_expected_checksums} | to_nice_yaml }}"

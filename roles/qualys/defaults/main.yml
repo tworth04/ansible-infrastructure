@@ -1,0 +1,4 @@
+#qualys_rpm: qualys_cloud_agent.rpm 
+qualys_rpm: qualys_cloud_agent_7.rpm 
+qualys_config: qualys.conf
+qualys_proxy: qualys_proxy

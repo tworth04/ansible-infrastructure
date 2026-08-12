@@ -1,0 +1,12 @@
+---
+
+- name: Enable authselect - Force authselect profile select
+  ansible.builtin.command:
+    cmd: authselect select --force sssd with-mkhomedir 
+  when: ansible_facts.services['sssd.service'].state == 'running'
+
+- name: ensure winbind is enabled when running
+  systemd_service:
+    name: sssd
+    state: restarted
+    enabled: true

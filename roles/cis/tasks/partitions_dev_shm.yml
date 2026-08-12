@@ -1,0 +1,237 @@
+# Role: fstab and LVM hardening for /tmp, /var/tmp, and /home
+
+# --- Setup and Discovery ---
+- name: Gather mount facts
+  ansible.builtin.setup:
+    filter: ansible_mounts
+
+- name: Debug gathered mount facts
+  debug:
+    var: ansible_mounts
+
+- name: Determine if /var/tmp is incorrectly mounted from /home
+  ansible.builtin.set_fact:
+    is_var_tmp_incorrect: >-
+      {{
+        ansible_mounts | selectattr('mount', '==', '/var/tmp') |
+        selectattr('device', 'search', '/home') | list | length > 0
+      }}
+
+- name: Debug is_var_tmp_incorrect
+  debug:
+    var: is_var_tmp_incorrect
+
+# --- Remove existing /tmp and /var/tmp entries from fstab ---
+- name: Remove any existing /tmp entry from /etc/fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^.*\\s+/tmp\\s+.*$'
+    state: absent
+
+- name: Remove any existing /var/tmp entry from /etc/fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^.*\\s+/var/tmp\\s+.*$'
+    state: absent
+
+# --- VG Selection for /tmp ---
+- name: Debug available VGs before selecting for /tmp
+  debug:
+    var: ansible_lvm.vgs
+
+- name: Find suitable VG for /tmp
+  set_fact:
+    tmp_vg: "{{ item.key }}"
+  with_dict: "{{ ansible_lvm.vgs }}"
+  when: item.value.free_g is defined and (item.value.free_g | float) > 2.0
+  register: tmp_vg_selection
+
+- name: Debug tmp_vg_selection
+  debug:
+    var: tmp_vg_selection
+
+- name: Set tmp_vg from selection
+  set_fact:
+    tmp_vg: "{{ tmp_vg_selection.results | selectattr('ansible_facts.tmp_vg', 'defined') | map(attribute='ansible_facts.tmp_vg') | list | first }}"
+  when: tmp_vg_selection.results | selectattr('ansible_facts.tmp_vg', 'defined') | list | length > 0
+
+- name: Debug selected tmp_vg
+  debug:
+    var: tmp_vg
+  when: tmp_vg is defined
+
+# --- /tmp Setup ---
+- name: Create and format /tmp logical volume
+  when: tmp_vg is defined
+  block:
+    - name: Create /tmp logical volume
+      community.general.lvol:
+        vg: "{{ tmp_vg }}"
+        lv: tmp
+        size: "2g"
+        state: present
+        force: false
+      register: tmp_lvol_status
+
+    - name: Debug tmp_lvol_status
+      debug:
+        var: tmp_lvol_status
+
+    - name: Set /tmp LV path
+      ansible.builtin.set_fact:
+        tmp_lv_path: "/dev/mapper/{{ tmp_vg }}-tmp"
+
+    - name: Debug tmp_lv_path
+      debug:
+        var: tmp_lv_path
+
+    - name: Format /tmp LV with xfs
+      community.general.filesystem:
+        fstype: xfs
+        dev: "{{ tmp_lv_path }}"
+        force: false
+      when: tmp_lvol_status.changed
+
+    - name: Ensure /tmp directory exists
+      ansible.builtin.file:
+        path: /tmp
+        state: directory
+        mode: '1777'
+
+    - name: Ensure /tmp entry is present in /etc/fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: "{{ tmp_lv_path }} /tmp xfs defaults,nodev,nosuid 0 0"
+        state: present
+        create: yes
+
+    - name: Ensure /tmp is mounted
+      ansible.posix.mount:
+        path: /tmp
+        src: "{{ tmp_lv_path }}"
+        fstype: xfs
+        opts: defaults,nodev,nosuid
+        state: mounted
+
+# --- VG Selection for /var/tmp ---
+- name: Debug available VGs before selecting for /var/tmp
+  debug:
+    var: ansible_lvm.vgs
+
+- name: Find suitable VG for /var/tmp
+  set_fact:
+    vartmp_vg: "{{ item.key }}"
+  with_dict: "{{ ansible_lvm.vgs }}"
+  when: item.value.free_g is defined and (item.value.free_g | float) > 2.0
+  register: vartmp_vg_selection
+
+- name: Debug vartmp_vg_selection
+  debug:
+    var: vartmp_vg_selection
+
+- name: Set vartmp_vg from selection
+  set_fact:
+    vartmp_vg: "{{ vartmp_vg_selection.results | selectattr('ansible_facts.vartmp_vg', 'defined') | map(attribute='ansible_facts.vartmp_vg') | list | first }}"
+  when: vartmp_vg_selection.results | selectattr('ansible_facts.vartmp_vg', 'defined') | list | length > 0
+
+- name: Debug selected vartmp_vg
+  debug:
+    var: vartmp_vg
+  when: vartmp_vg is defined
+
+# --- /var/tmp Setup (only if LVM is created) ---
+- name: Create and format /var/tmp logical volume
+  when: vartmp_vg is defined
+  block:
+    - name: Create /var_tmp logical volume
+      community.general.lvol:
+        vg: "{{ vartmp_vg }}"
+        lv: var_tmp
+        size: "2g"
+        state: present
+      register: vartmp_lvol_status
+
+    - name: Debug vartmp_lvol_status
+      debug:
+        var: vartmp_lvol_status
+
+    - name: Set LVM path for /var/tmp
+      ansible.builtin.set_fact:
+        vartmp_lv_path: "/dev/mapper/{{ vartmp_vg }}-var_tmp"
+
+    - name: Debug vartmp_lv_path
+      debug:
+        var: vartmp_lv_path
+
+    - name: Format /var/tmp LV with xfs
+      community.general.filesystem:
+        fstype: xfs
+        dev: "{{ vartmp_lv_path }}"
+        force: false
+      when: vartmp_lvol_status.changed
+
+    - name: Ensure /var/tmp directory exists
+      ansible.builtin.file:
+        path: /var/tmp
+        state: directory
+        mode: '1777'
+
+    - name: Ensure /var/tmp entry is present in /etc/fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: "{{ vartmp_lv_path }} /var/tmp xfs defaults,nodev,nosuid 0 0"
+        state: present
+        create: yes
+
+    - name: Mount /var/tmp with corrected options
+      ansible.posix.mount:
+        path: /var/tmp
+        src: "{{ vartmp_lv_path }}"
+        fstype: xfs
+        opts: defaults,nodev,nosuid
+        state: mounted
+
+# --- /home Correction ---
+- name: Debug available LVs
+  debug:
+    var: ansible_lvm.lvs
+
+- name: Set LVM path for /home
+  ansible.builtin.set_fact:
+    home_lv_path: "/dev/mapper/{{ ansible_lvm.lvs['home'].vg }}-home"
+  when: ansible_lvm.lvs.home is defined
+
+- name: Debug home_lv_path
+  debug:
+    var: home_lv_path
+  when: home_lv_path is defined
+
+- name: Ensure /home entry is present and mounted
+  ansible.posix.mount:
+    path: /home
+    src: "{{ home_lv_path }}"
+    fstype: xfs
+    opts: defaults,nodev,noexec,nosuid
+    state: mounted
+  when: home_lv_path is defined
+
+# --- Cleanup ---
+- name: Remove rogue systemd-private directories from /home
+  block:
+    - name: Find systemd-private directories
+      ansible.builtin.find:
+        paths: /home
+        recurse: no
+        file_type: directory
+        patterns: 'systemd-private-*'
+      register: systemd_dirs
+
+    - name: Debug systemd-private directories found
+      debug:
+        var: systemd_dirs.files
+
+    - name: Remove found directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ systemd_dirs.files }}"

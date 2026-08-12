@@ -1,0 +1,8 @@
+---
+ansible_python_interpreter: /usr/bin/python3
+host: vc01003.example.com
+uname: svc\vc_admin
+pword: "{{ vault_vsphere_password }}"
+servers:
+  - { name: 'dev-pci-bat01', ip: '10.0.0.1' }
+  - { name: 'dev-pmt-bat01', ip: '10.0.0.1' }

@@ -1,0 +1,18 @@
+---
+- name: Update cache
+  apt: 
+    update_cache: true
+  changed_when: false
+
+- name: Install security updates
+  shell: |
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get -s dist-upgrade | grep '^Inst' | grep -i -- '-security ' | awk '{print $2}' | xargs apt-get install
+  register: update_cmd
+  changed_when: false
+
+- name: check for installed packages
+  debug: msg='updates got installed'
+  when: update_cmd.stdout.find('0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded') == -1
+...

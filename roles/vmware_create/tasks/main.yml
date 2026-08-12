@@ -1,0 +1,32 @@
+---
+#- name: Request VM Name
+#  prompt:
+#    msg: "Enter the name of the VM to create (e.g., prd-example):"
+# register: servers.name
+
+#- name: Determine environment and folder
+#  set_fact:
+#    environment: "{{ 'prd' if servers.name.stdout | regex_search('^prd') else ('dev' if servers.name.stdout | regex_search('^(qua|sit|uat|per)') else 'unknown') }}"
+#    folder_path: "{{ 'Production Linux/' if environment == 'prd' else 'All Virtual Machines/Linux/dev/' }}{{ servers.name.stdout }}"
+
+
+#- name: Determine vCenter server
+#  set_fact:
+#    vcenter_hostname: "{% if item starts with 'dev' or item starts with 'qua' or item starts with 'sit' or item starts with 'turn' %}vcenter-prod.example.com{% else %}vc01006.example.com{% endif %}"
+#    run_once: yes
+
+- include_tasks: create.yml
+
+#- name: remove previous dev dynamic inventory cache file
+#  file:
+#    path: /etc/ansible/facts.d/dev/ansible_inventory_community.vmware.vmware_vm_inventory_9de88s_c5417
+#    state: absent
+
+- name: remove previous prod dynamic inventory cache file
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_fileglob:
+    - "/etc/ansible/facts.d/*/ansible_inventory_community*"
+
+- include_tasks: update_inventory.yml

@@ -1,0 +1,14 @@
+---
+
+- name: enable mariadb
+  service:
+    name: mariadb
+    enabled: yes
+  when: register_mariadb.stat.exists
+
+- name: enable mariadb
+  service:
+    name: mysqld
+    enabled: yes
+  when: register_mysql.stat.exists
+

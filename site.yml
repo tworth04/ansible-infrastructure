@@ -1,0 +1,5 @@
+---
+- import_playbook: admin_servers.yml
+- import_playbook: webservers.yml
+- import_playbook: mysql_servers.yml
+- import_playbook: redis_servers.yml

@@ -1,0 +1,28 @@
+---
+- name: Install HTTPD 
+  yum:
+    name: httpd
+    state: latest
+    disable_gpg_check: true
+
+- name: enable php8.2
+  command: yum module enable php:8.2 -y
+
+- name: Install PHP-FPM and Apache
+  yum:
+    name: php-fpm
+    state: latest
+    disable_gpg_check: true
+
+- name: Enable Services
+  systemd_service:
+    name: php-fpm 
+    state: started
+    enabled: true
+
+- name: Enable Services
+  systemd_service:
+    name: httpd
+    state: started
+    enabled: true
+

@@ -1,0 +1,13 @@
+---
+- name: install needed packages
+  dnf:
+    name:
+    - yum-utils
+    - python3-dnf
+    state: present
+- name: perform full os upgrade
+  dnf:
+    name: '*'
+    update_cache: true
+    state: latest
+...

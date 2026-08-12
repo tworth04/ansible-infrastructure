@@ -1,0 +1,83 @@
+---
+# CIS Audit Role Tasks
+
+# 1️⃣ Gather facts
+- name: Gather service facts
+  ansible.builtin.service_facts: {}
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+# 2️⃣ Verify copied configuration files exist and permissions
+- name: Check critical CIS files
+  ansible.builtin.stat:
+    path: "{{ item.dest }}"
+  register: cis_files_status
+  loop:
+    - { dest: /etc/sudoers, mode: '0440' }
+    - { dest: /etc/motd, mode: '0644' }
+    - { dest: /etc/issue, mode: '0644' }
+    - { dest: /etc/profile.d/tmout.ksh, mode: '0644' }
+    - { dest: /etc/profile.d/tmout.sh, mode: '0644' }
+    - { dest: /etc/profile.d/tmout.csh, mode: '0644' }
+    - { dest: /etc/ssh/sshd_config.d/00-complianceascode-hardening.conf, mode: '0644' }
+    - { dest: /etc/ssh/sshd_config.d/01-complianceascode-reinforce-os-defaults.conf, mode: '0644' }
+    - { dest: /etc/ssh/sshd_config.d/01-permitrootlogin.conf, mode: '0644' }
+    - { dest: /etc/sysconfig/chrony.conf, mode: '0644' }
+    - { dest: /etc/sysctl.d/99-sysctl.conf, mode: '0644' }
+    - { dest: /var/spool/cron/aide.cron, mode: '0644' }
+    - { dest: /etc/systemd/journald.conf, mode: '0644' }
+    - { dest: /etc/sudoers.d/lx-admin, mode: '0440' }
+    - { dest: /etc/security/pam_env.conf, mode: '0644' }
+    - { dest: /etc/security/limits.d/99-coredump.conf, mode: '0644' }
+    - { dest: /etc/ssh/sshd_config, mode: '0644' }
+    - { dest: /etc/modprobe.d/CIS.conf, mode: '0644' }
+    - { dest: /etc/audit/auditd.conf, mode: '0644' }
+    - { dest: /etc/profile.d/99-localefix.sh, mode: '0644' }
+
+- name: Report missing or incorrect permissions
+  ansible.builtin.debug:
+    msg: >
+      File {{ item.stat.path }} is {{ 'missing' if not item.stat.exists else 'present with mode ' ~ item.stat.mode }}
+      (expected {{ item.item.mode }})
+  loop: "{{ cis_files_status.results }}"
+  when: not item.stat.exists or item.stat.mode != item.item.mode
+
+# 3️⃣ Validate SSH configuration
+- name: Validate SSH settings
+  ansible.builtin.command:
+    cmd: sshd -T
+  register: sshd_config_check
+  changed_when: false
+
+- name: Show SSH audit results
+  ansible.builtin.debug:
+    var: sshd_config_check.stdout_lines
+
+# 4️⃣ Check unwanted packages
+- name: Check for unwanted packages
+  ansible.builtin.shell: rpm -q {{ item }}
+  register: unwanted_pkgs
+  loop:
+    - telnet
+    - openldap-clients
+  ignore_errors: true
+  changed_when: false
+
+- name: Report unwanted packages
+  ansible.builtin.debug:
+    msg: "Package {{ item.item }} is installed!"
+  loop: "{{ unwanted_pkgs.results }}"
+  when: item.rc == 0
+
+# 5️⃣ Validate authselect profile
+- name: Check current authselect profile
+  ansible.builtin.command:
+    cmd: authselect current
+  register: authselect_status
+  changed_when: false
+
+- name: Show authselect audit results
+  ansible.builtin.debug:
+    var: authselect_status.stdout_lines

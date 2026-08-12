@@ -1,0 +1,26 @@
+---
+
+- name: Send zabbix agent2 to /tmp on "{{ ansible_host }}"
+  copy:
+    src: "{{ zabbix_agent2_rpm_el7 }}"
+    dest: /tmp/zabbix_agent2.rpm
+  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "7"
+
+- name: Install agent
+  yum:
+    name: /tmp/zabbix_agent2.rpm
+    state: present
+    disable_gpg_check: true
+  async: 20
+
+- name: Copy zabbix-agent.conf 
+  ansible.builtin.template:
+    src: "{{ zabbix_agent2_config }}"
+    dest: /etc/zabbix/zabbix_agent2.conf
+    force: true
+
+- name: Restart Zabbix Agent
+  systemd_service:
+    name: zabbix-agent2
+    state: restarted
+    enabled: true

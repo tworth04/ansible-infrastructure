@@ -1,0 +1,29 @@
+---
+
+- name: Send Tanium to /tmp on "{{ ansible_hostname }}"
+  copy:
+    src: "{{ tanium_rpm_el8 }}"
+    dest: /tmp/{{ tanium_rpm_el8 }}
+
+#- name: Install package foo
+#  command: rpm -i /tmp/{{ tanium_rpm }}
+
+- name: Install Tanium 
+  yum:
+    name: /tmp/{{ tanium_rpm_el8 }}
+    state: present
+    disable_gpg_check: true
+    disablerepo: "*" 
+  async: 60
+  poll: 5
+
+- name: Copy Tanium dat file to /opt/Tanium 
+  copy:
+    src: "{{ tanium_config }}"
+    dest: /opt/Tanium/TaniumClient
+
+- name: Restart Tanium service and set Enabled 
+  systemd_service:
+    name: taniumclient 
+    state: restarted
+    enabled: true

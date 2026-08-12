@@ -1,0 +1,7 @@
+[main]
+gpgcheck=0
+installonly_limit=2
+clean_requirements_on_remove=True
+best=True
+timeout=300
+repo_gpgcheck=0

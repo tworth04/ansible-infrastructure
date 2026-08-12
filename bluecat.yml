@@ -1,0 +1,86 @@
+---
+- name: Compare IP addresses between vSphere and BlueCat, and check DNS configurations
+  hosts: localhost
+  gather_facts: no
+  vars:
+    vsphere_host: "vcenter-prod.example.com"
+    vsphere_user: "svc\vc_admin"
+    vsphere_password: "{{ vault_vsphere_password }}"
+    vsphere_datacenter: Example Dev
+    bluecat_url: "https://bluecat.example.com/api/v1"
+    bluecat_username: "{{ vault_bluecat_username }}"
+    bluecat_password: "{{ vault_bluecat_password }}"
+    bluecat_config_id: EXAMPLE
+
+
+  tasks:
+    - name: Connect to vSphere and retrieve assigned IP addresses
+      vmware_guest_info:
+        hostname: "{{ vsphere_host }}"
+        username: "{{ vsphere_user }}"
+        password: "{{ vsphere_password }}"
+        name: "dev-int-slp01"
+        name_match: "first"
+        datacenter: "{{ vsphere_datacenter }}"
+        validate_certs: False
+      register: vm_info
+
+    - debug:
+        var: vm_info.virtual_machines
+
+#    - name: Extract IP addresses from vSphere guests
+#      set_fact:
+#        vsphere_ips: "{{ vm_info.guests | map(attribute='ipv4') | list }}"
+
+    - name: Connect to BlueCat and retrieve assigned IP addresses and DNS configurations
+      bluecat:
+        url: "{{ bluecat_url }}"
+        username: "{{ bluecat_username }}"
+        password: "{{ bluecat_password }}"
+        config_id: "{{ bluecat_config_id }}"
+        action: get_all_ips
+      register: bc_info
+
+    - name: Extract BlueCat IP addresses and DNS configurations
+      set_fact:
+        bc_ips_and_dns: "{{ bc_info.ip_list | map(attribute='ipAddress') | list }}"
+
+    - name: Compare vSphere and BlueCat IP addresses
+      set_fact:
+        discrepancies: "{{ vsphere_ips | difference(bc_ips_and_dns) + bc_ips_and_dns | difference(vsphere_ips) }}"
+
+    - name: Extract DNS configurations for discrepancies from BlueCat
+      bluecat:
+        url: "{{ bluecat_url }}"
+        username: "{{ bluecat_username }}"
+        password: "{{ bluecat_password }}"
+        config_id: "{{ bluecat_config_id }}"
+        action: get_ip_details
+        ip_address: "{{ item }}"
+      register: bc_dns_info
+      loop: "{{ discrepancies | list }}"
+
+    - name: Prepare potential issues for network administrators
+      set_fact:
+        potential_issues: []
+      vars:
+        bc_dns_info_dict: "{{ dict(bc_dns_info.results | map(attribute='item') | zip(bc_dns_info.results | map(attribute='ansible_facts')) }}"
+      loop: "{{ discrepancies | list }}"
+
+    - name: Add potential issues to the list
+      set_fact:
+        potential_issues: "{{ potential_issues + [ {
+            'ip': item,
+            'vsphere_configured': 'yes' if item in vsphere_ips else 'no',
+            'bluecat_configured': 'yes' if item in bc_ips_and_dns else 'no',
+            'dns_in_bluecat': 'yes' if bc_dns_info_dict[item].dns_name else 'no',
+            'potential_issues': [
+                'IP address not found in BlueCat configuration' if item not in bc_ips_and_dns else '',
+                'DNS name not configured in BlueCat for this IP' if bc_dns_info_dict[item].dns_name is None else ''
+            ]
+        } for item in discrepancies] }}"
+
+    - name: Display discrepancies and potential issues
+      debug:
+        msg: "{{ item }}"
+      loop: "{{ potential_issues | reject('failed') }}"

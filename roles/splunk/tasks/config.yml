@@ -1,0 +1,30 @@
+---
+
+- name: Create directory structure if not present
+  file:
+    path: /opt/splunkforwarder/etc/apps/dw-uf_outputs/local
+    state: directory
+    mode: '0755'
+    owner: splunkfwd
+    group: splunkfwd
+
+- name: Update Forwarding Server addresses
+  copy:
+    src: "{{ splunk_outputs }}"
+    dest: /opt/splunkforwarder/etc/apps/dw-uf_outputs/local/outputs.conf
+    owner: splunkfwd
+    group: splunkfwd
+
+- name: First, create the directory
+  file:
+    path: /opt/splunkforwarder/etc/system/local
+    state: directory
+    recurse: yes
+
+- name: Copy Conf file to /opt/splunkforwarder/etc/system/local/user-seed.conf
+  copy:
+    src: "{{ splunk_config }}"
+    dest: /opt/splunkforwarder/etc/system/local/user-seed.conf
+    force: true
+    owner: splunkfwd
+    group: splunkfwd

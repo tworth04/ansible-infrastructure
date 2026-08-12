@@ -1,0 +1,47 @@
+---
+- name: enable node 22
+  command: yum module enable nodejs:22 -y
+
+- name: Install nodejs
+  yum:
+    name: nodejs
+    state: latest
+    disable_gpg_check: true
+
+- name: enable external to install needed packages
+  #command: npm config set proxy http://proxy.example.com:3128/
+  ansible.builtin.lineinfile:
+    path: /etc/yum.conf
+    line: 'proxy="http://prd-prx-nod01.example.com:3128/"'
+    create: yes
+    state: present 
+
+- name: Add Docker GPG key
+  ansible.builtin.rpm_key:
+    key: https://download.docker.com/linux/rhel/gpg
+    state: present
+
+- name: Configure Docker CE repository
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/rhel/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Install Docker CE packages
+  ansible.builtin.yum:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: latest
+    update_cache: no
+
+- name: Start and enable Docker service
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: yes

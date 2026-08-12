@@ -1,0 +1,10 @@
+# Sudo to webmaster.
+
+# Any conversion of dashes to underscores is to maintain compatibility with
+# the sudoers Alias definitions.  See `man sudoers` for more information.
+Host_Alias  LX_DEV_HOSTS = ALL
+Runas_Alias LX_DEV_RUNAS = ALL
+Cmnd_Alias  LX_DEV_CMNDS = /bin/su webmaster, /bin/su -l webmaster
+
+%lx-dev LX_DEV_HOSTS = (LX_DEV_RUNAS) PASSWD: LX_DEV_CMNDS
+%lx-dev ALL=(runcmg) NOPASSWD: ALL

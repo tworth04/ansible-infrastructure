@@ -1,0 +1,8 @@
+---
+
+- name: Enforce Usage of pam_wheel with Group Parameter for su Authentication - Add the group to the /etc/pam.d/su file
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/su
+    state: present
+    regexp: ^[\s]*#[\s]*auth[\s]+required[\s]+pam_wheel\.so[\s]+use_uid group=$
+    line: auth             required        pam_wheel.so use_uid

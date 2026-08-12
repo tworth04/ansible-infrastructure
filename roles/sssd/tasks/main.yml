@@ -1,0 +1,46 @@
+---
+- name: confirm system not previously joined to AD
+  command: "realm leave"
+
+- name: double check
+  command: "realm leave"
+
+- name: remove krb5.keytab
+  file:
+    path: /etc/krb5.keytab
+    state: absent
+
+- name: Join system to AD
+  expect:
+    command: "realm join -U {{ bind_username }} EXAMPLE.ADP.AD "
+    responses: 
+      Password for *: "{{ bind_password }}"
+
+
+#- name: Insert/Update configuration using a local file and validate it
+#  blockinfile:
+#    block: "{{ lookup('ansible.builtin.file', '/etc/sssd/sssd.conf') }}"
+#    path: /etc/sssd/sssd.conf
+
+#- name: add needed config to default sssd.conf        
+#  blockinfile:
+#    path: /etc/sssd/sssd.conf
+#    append_newline: true
+#    prepend_newline: true
+#    block: |
+#      ad_gpo_access_control = permissive
+#      full_name_format = %1$s
+
+- name: Copy Conf file to /etc/sssd/sssd.conf
+  copy:
+    #src: /etc/sssd/sssd.conf
+    src: files/sssd.conf
+    #src: "{{ sssd }}"
+    dest: /etc/sssd/sssd.conf
+    force: true
+
+- name: restart sssd service
+  systemd_service:
+    name: sssd
+    state: restarted
+    enabled: true

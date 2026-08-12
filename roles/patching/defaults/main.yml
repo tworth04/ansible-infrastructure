@@ -1,0 +1,16 @@
+packages_redhat:
+  - audit
+  - aide
+  - gnupg2
+  - libpwquality
+  - needrestart
+  - rsyslog
+  - rsyslog-gnutls
+  - systemd-journal-remote
+  - cloud-utils-growpart
+  - vim
+  - net-tools
+  - nfs-utils
+  - smb-utils
+  - autofs
+  - realmd

@@ -1,0 +1,11 @@
+---
+- name: Install Redis
+  yum:
+    name: "{{ redis_rocky }}"
+    state: latest
+
+- name: Start and Enable Redis
+  systemd_service:
+    name: redis
+    state: stopped
+    enabled: true

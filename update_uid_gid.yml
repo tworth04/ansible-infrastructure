@@ -1,0 +1,12 @@
+---
+- hosts: all 
+  become: yes
+  serial: 1
+  gather_facts: false
+  tasks:
+
+    - name: update alfresco uid 
+      command: usermod -u 1007 alfresco
+          
+    - name: update alfresco gid
+      command: groupmod -g 1011 alfresco

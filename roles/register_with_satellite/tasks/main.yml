@@ -1,0 +1,71 @@
+---
+- name: Find and remove uneeded rocky repos
+  find:
+    paths: /etc/yum.repos.d
+    patterns: "rocky*.repo"
+  register: files_to_change_rocky
+  when: ansible_facts['distribution'] == "Rocky"
+
+#- name: Modify the file permissions
+#  file:
+#    path: "{{ item.path }}"
+#    state: absent
+#  with_items: "{{ files_to_change_rocky.files }}"
+
+- name: Clean Yum/RHSM
+  command: subscription-manager unregister
+
+- name: Clean RHSM
+  command: subscription-manager clean
+
+- name: Clean Yum
+  command: yum clean all
+
+- name: Send Katello to /tmp on "{{ ansible_hostname }}"
+  copy:
+    src: "{{ katello_rpm }}"
+    dest: /tmp/{{ katello_rpm }}
+
+- name: Install katello cert
+  yum:
+    name: /tmp/{{ katello_rpm }}
+    state: latest
+    disable_gpg_check: true
+
+- name: copy template for proper satellite naming
+  template:
+    src: kattello.facts.j2
+    dest: /etc/rhsm/facts/katello.facts
+    force: true
+
+- name: Register with Example Satellite Server 'RHEL'
+#  command: 'subscription-manager register --org="Exampleservices" --activationkey="admin" --force'
+  command: 'subscription-manager register --org="Exampleservices" --activationkey="admin" --force --name={{ansible_hostname }}.example.com'
+#  async: 45
+  when: ansible_facts['distribution'] == "RedHat"
+#  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Register with Example Satellite Server 'Rocky'
+#  command: 'subscription-manager register --org="Exampleservices" --activationkey="Rocky" --force'
+  command: 'subscription-manager register --org="Exampleservices" --activationkey="Rocky" --force --name={{ ansible_hostname }}.example.com '
+#  async: 45
+  when: ansible_facts['distribution'] == "Rocky" 
+
+- name: Register with Example Satellite Server 'CentOS'
+  command: 'subscription-manager register --org="Exampleservices" --activationkey="admin01" --force --name={{ ansible_hostname }}.example.com '
+#  async: 45
+  when: ansible_facts['distribution'] == "CentOS"
+
+- name: Enable Root Login
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: "PermitRootLogin yes"
+    state: present
+    backup: yes
+  become: yes
+
+- name: restart sshd service
+  systemd_service:
+    name: sshd
+    state: restarted

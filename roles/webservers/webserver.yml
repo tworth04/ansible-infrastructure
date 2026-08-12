@@ -1,0 +1,54 @@
+---
+- name: Run cleanup scripts
+  hosts: sit-web-all
+  become: yes
+  gather_facts: false
+
+  tasks:
+    - name: download create_urls
+      shell: wget http://dev-adm-jmp01.example.com/automation/create_urls.tar.gz -P /tmp
+    - name: download redis_client
+      shell: wget http://dev-adm-jmp01.example.com/automation/create_redis_client.tar.gz -P /tmp
+      register: command_output
+    - name: Place webmaster keys for rsync server
+      shell: echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDT78slUssJH0fapniB6HmqhdIIOTIdencGgHRB+6B6gXtbvhTrcx/Qjzv05dszC8Co8+PWu6t/SpUM28GvzxRgBS8Aw6cE/mJFyJodCNdyhgy5k4oHWbej602iE9UGLjlO1H5OuICZ+3Meo6jSLq8QH3xlbu5tHiikM02mllrqIxZSBDxffycEr9xKzAlFbNB+B1kTG/z/fBr8J74x1X6QmvgvFc42lSVtU+2GRq7l95UqskDdbORVWCIr4eZ1tGqme3d8RAzeWS1hPUZ5UuzwAo5Q4bl89yj+FpRogO2Wg7Xxl7YisAJ86CWhco+c94VSdFPQG05v41JfoC24C6GbjXkhpKwcB/r2r2DEE5OmFZdn0b64vc01bMih1JgTJoUxadgdWNGbnUTUkcpoV9Q59p638gfAJPm1jbOXbrk0lJUDlsNNB/64IH6YZyY+1O1EaIAyyATIYAsfBdftlJfwAiBhc6BxobqGPKrqCEN8fj38jKWffMbzndS6LwLRWZ8= webmaster@dev-int-rsy01" >> /home/webmaster/.ssh/authorized_keys
+      register: command_output
+    - name: Extract create_urls 
+      shell: cd /tmp;tar -zxf create_urls.tar.gz
+      register: command_output
+    - name: Execute create_urls 
+      shell: cd /tmp/create_urls/;bash create_urls.sh
+      register: command_output
+    - name: Give output
+      debug:
+        var: command_output.stdout
+    - name: Extract create_redis_client
+      shell: cd /tmp;tar -zxf create_redis_client.tar.gz
+      register: command_output
+    - name: Execute create_redis_client
+      shell: cd /tmp/create_redis_client;bash create_redis_client.sh
+      register: command_output
+    - name: Create /web/trace/db_v2.0_sql
+      file:
+        path: /web/trace/db_v2.0_sql
+        state: directory
+        mode: 0775
+    - name: Ownership of /web/trace/db_v.20_sql
+      file:
+        path: /web/trace/db_v2.0_sql
+        owner: apache
+        group: webmaster 
+    - name: Restart HTTPD and PHP-FPM
+      shell: systemctl restart httpd;systemctl restart php-fpm
+    - name: Create /webdata/local
+      file:
+        path: /webdata/local
+        state: directory
+        mode: 0775
+    - name: Ownership of /webdata/local
+      file:
+        path: /webdata/local
+        owner: root 
+        group: webmaster 
+    - name: Set permissions of /webdata
+      shell: chown -R webmaster:webmaster /webdata

@@ -1,0 +1,13 @@
+- name: Wait for VM to be powered on and available
+  vsphere_guest_powerstate:
+    hostname: "{{ vsphere_hostname }}"
+    username: "{{ vsphere_username }}"
+    password: "{{ vsphere_password }}"
+    validate_certs: no
+    datacenter: "{{ datacenter_name }}"
+    folder: "/{{ resource_pool_name }}/vm"
+    name: "{{ vm_name }}"
+    state: powered_on
+  until: vm_creation_result is succeeded and vm_powerstate == "poweredOn"
+
+- include_tasks: assign_ip.yml

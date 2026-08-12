@@ -1,0 +1,90 @@
+---
+- name: Deploy awx-rpm and Configure Full Ansible on Rocky Linux 10
+  hosts: '{{ target | default("all") }}' 
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Ensure the server is Rocky Linux 9
+      ansible.builtin.fail:
+        msg: "This playbook is intended for Rocky Linux 9 or compatible systems only."
+      when: ansible_facts['distribution'] != 'Rocky' or ansible_facts['distribution_major_version'] != '9'
+
+  tasks:
+    # --- Section 1: System-wide Full Ansible Configuration ---
+    - name: Create Ansible directory structure in /etc/ansible
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop:
+        - /etc/ansible
+        - /etc/ansible/roles
+        - /etc/ansible/collections
+
+    - name: Create a system-wide ansible.cfg file
+      ansible.builtin.copy:
+        dest: /etc/ansible/ansible.cfg
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [defaults]
+          inventory = /etc/ansible/hosts
+          roles_path = /etc/ansible/roles
+          collections_paths = /etc/ansible/collections
+          host_key_checking = False
+
+    - name: Install prerequisite packages
+      ansible.builtin.dnf:
+        name:
+          - git
+          - ansible-core
+          - python3-pip
+          - createrepo
+        state: present
+
+    - name: Install EPEL repository for Rocky Linux 9
+      ansible.builtin.dnf:
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+
+    - name: Install the full 'ansible' community package using pip
+      ansible.builtin.pip:
+        name: ansible
+        state: present
+
+    # --- Section 2: AWX-RPM Deployment ---
+    - name: Enable the CRB repository for Rocky 9
+      ansible.builtin.command:
+        cmd: "dnf config-manager --set-enabled crb"
+      changed_when: true
+
+  #    - name: Clone the awx-rpm-v2 repository
+  #    ansible.builtin.git:
+  #      repo: "https://github.com/MrMEEE/awx-rpm-v2.git" # CORRECTED: Using the v2 repo
+  #      dest: "/opt/awx-rpm"
+  #      version: "main"
+
+    - name: Run the awx-rpm installer playbook
+      ansible.builtin.command:
+        cmd: "ansible-playbook -i inventory awx-rpm-install.yml"
+        chdir: "/opt/awx-rpm/ansible" # CORRECTED: Path for the v2 repo's playbook
+      changed_when: true
+      register: awx_install_result
+
+    - name: Display AWX installation output
+      ansible.builtin.debug:
+        var: awx_install_result.stdout_lines
+
+    - name: Final instructions
+      ansible.builtin.debug:
+        msg:
+          - "AWX installation process is complete on Rocky Linux 9."
+          - "Full Ansible community package has been installed via pip."
+          - "System-wide Ansible is configured in /etc/ansible."
+          - "Access AWX at https://{{ ansible_default_ipv4.address }}:8043/"
+          - "Default AWX username is 'admin'. Password is in /root/awx-secret on the AWX server."

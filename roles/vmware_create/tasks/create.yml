@@ -1,0 +1,51 @@
+---
+- name: Clone the template
+  vmware_guest:
+    hostname: "{{ host }}"
+    username: "{{ uname }}"
+    password: "{{ pword }}"
+    validate_certs: False
+    name: "{{ item.name }}"
+    networks:
+#    - name: Static IP Assignment
+    - name: "{{ item.vlan }}"
+      ip: "{{ item.ip }}"
+      netmask: "255.255.255.0"
+      gateway: "{{ item.gateway }}"
+      start_connected: True
+      device_type: vmxnet3
+    template: "{{ template }}"
+#    hardware: 
+#      hotadd_cpu: 
+#      hotadd_mem: 
+    datastore: "{{ datastore }}"
+    datacenter: "{{ datacenter }}" 
+    cluster: "{{ cluster }}"
+    folder: "{{ folder }}"
+    state: poweredon
+    customization:
+      hostname: "{{ item.name }}"
+      dns_servers:
+        - 10.0.0.1
+        - 10.0.0.1
+      dns_suffix:
+        - example.com
+        - example.com
+  with_items: "{{ servers }}"
+  delegate_to: localhost
+
+#- name: Add host to group 'just_created'
+#  add_host:
+#    name: '{{ hostname }}'
+#    ansible_host: "{{ item.ip }}"
+#    groups: just_created
+
+#- name: Waits for port 8000 of any IP to close active connections, don't start checking for 10 seconds
+#  wait_for:
+#    host: "{{ item.ip }}"
+#    port: 22
+#    delay: 20
+
+#- hosts: just_created
+#  import_playbook: all_servers.yml
+#  tags: baseline

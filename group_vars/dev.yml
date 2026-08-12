@@ -1,0 +1,4 @@
+vcenter_hostname: vcenter.example.com
+vcenter_username: ansible-svc@vsphere.local
+vcenter_password: "{{ vault_vcenter_password }}"
+vcenter_datacenter: Dev Datacenter

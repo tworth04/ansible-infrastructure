@@ -1,0 +1,117 @@
+---
+# Play 1: Audit CIS compliance on all hosts
+- hosts: '{{ target | default("all") }}'
+  become: true
+  gather_facts: true
+  serial: 50
+
+  tasks:
+    - name: Load pre-calculated checksums
+      ansible.builtin.include_vars:
+        file: roles/cis/vars/checksums.yml
+
+    - name: Verify deployed files against baseline checksums
+      ansible.builtin.stat:
+        path: "{{ item.key | regex_replace('roles/cis/files', '') }}"
+        checksum_algorithm: sha256
+      register: deployed_checksums
+      loop: "{{ cis_expected_checksums | dict2items }}"
+
+    - name: Check permissions on deployed files
+      ansible.builtin.stat:
+        path: "{{ item.key | regex_replace('roles/cis/files', '') }}"
+      register: perms_check
+      loop: "{{ cis_expected_checksums | dict2items }}"
+
+    - name: Aggregate audit results per host
+      ansible.builtin.set_fact:
+        cis_audit_summary: "{{ {'mismatches': mismatch_files, 'permissions': perm_issues} }}"
+      vars:
+        mismatch_files: "{{ deployed_checksums.results | selectattr('stat.exists', 'equalto', True) | selectattr('stat.checksum', 'ne', item.item.value) | map(attribute='stat.path') | list }}"
+        perm_issues: "{{ (perms_check.results | default([])) | selectattr('stat.exists', 'equalto', True) | selectattr('stat.mode', 'gt', '0644') | map(attribute='stat.path') | list }}"
+
+# Play 2: Combine results and send email
+- hosts: '{{ target | default("all") }}'
+  gather_facts: false
+  run_once: true
+
+  vars:
+    smtp_host: smtprelay.example.com
+    smtp_port: 25
+    report_path: /tmp/cis_audit_report.txt
+
+  tasks:
+
+    - debug:
+        msg: "{{ item }} -> {{ hostvars[item].cis_audit_summary | default('NOT SET') }}"
+      loop: "{{ ansible_play_hosts }}" 
+      delegate_to: localhost
+
+    - name: Combine all host results
+      ansible.builtin.set_fact:
+        combined_results: "{{ combined_results | default({}) | combine({item: hostvars[item].cis_audit_summary | default({})}) }}"
+      loop: "{{ ansible_play_hosts }}" 
+      delegate_to: localhost
+
+    - name: Generate compliance report
+      ansible.builtin.template:
+        src: cis_audit_report.j2
+        dest: "{{ report_path }}"
+      delegate_to: localhost
+
+#    - name: Send audit report via email
+#      community.general.mail:
+#        host: "{{ smtp_host }}"
+#        port: "{{ smtp_port }}"
+#        to: "travis.worth@example.com"
+#        subject: "CIS Audit Report Summary"
+#        body: "{{ lookup('file', report_path) }}"
+#      delegate_to: localhost
+
+    - name: Send audit report via email
+      community.general.mail:
+        host: "{{ smtp_host }}"
+        port: "{{ smtp_port }}"
+        to: "travis.worth@example.com (Travis Worth)"
+        from: "steve.example@example.com (Steve Example)"
+        subject: "CIS Audit Report Summary"
+        subtype: html
+        body: |
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; color: #333; }
+              h2 { color: #2c3e50; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f4f4f4; }
+              .ok { color: green; }
+              .fail { color: red; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <h2>CIS Compliance Audit Report</h2>
+            {% if combined_results | length > 0 %}
+            <table>
+              <tr>
+                <th>Host</th>
+                <th>Mismatches</th>
+                <th>Permissions Issues</th>
+              </tr>
+              {% for host, summary in combined_results.items() %}
+              <tr>
+                <td>{{ host }}</td>
+                <td class="{{ 'fail' if summary.mismatches | length > 0 else 'ok' }}">
+                  {{ summary.mismatches | join(', ') if summary.mismatches | length > 0 else 'None' }}
+                </td>
+                <td class="{{ 'fail' if summary.permissions | length > 0 else 'ok' }}">
+                  {{ summary.permissions | join(', ') if summary.permissions | length > 0 else 'None' }}
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+            {% else %}
+            <p style="color: green; font-weight: bold;">All targeted hosts are compliant. No issues found.</p>
+            {% endif %}
+          </body>
+          </html>

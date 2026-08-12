@@ -1,0 +1,21 @@
+cis_expected_checksums:
+    /etc/ansible/roles/cis/files/00-complianceascode-hardening.conf: dff3e0047a364a5a124f3be671f1aa8d70a7e38f4df1a084c3bfccf250f3250f
+    /etc/ansible/roles/cis/files/01-complianceascode-reinforce-os-defaults.conf: ecb8ff66ac13a8d153e53a1632085533636479043191da969ff865e350786584
+    /etc/ansible/roles/cis/files/01-permitrootlogin.conf: 1e3bbfcf3035e028a270571d1756f1c29aaf5072998c1e5b975f83ece4467f61
+    /etc/ansible/roles/cis/files/99-localefix.sh: 14a264fbbc1b628eb5361179f09f241f56d5a9e45311e90fc1289e659ad9bf6c
+    /etc/ansible/roles/cis/files/99-sysctl.conf: 93e44c1b777e71cce580385e70eed8ff88cf8fed45612772287d3bb8ebfc062b
+    /etc/ansible/roles/cis/files/CIS.conf: e4aced76268aefe475ff9bc72958c0380f429efe88edd660385cdc3dfa408183
+    /etc/ansible/roles/cis/files/aide.cron: 71816c75a93d6d4cf0216187460e0e4dfc8d44865182332453f4355ed32b783c
+    /etc/ansible/roles/cis/files/auditd.conf: 015a62492f93e559ef3251398355f006d841ff57ce731a092ba3c49304cd7f12
+    /etc/ansible/roles/cis/files/chrony.conf: 78662d36d110d6d27d14df03b3acc9fa3376ed0ae06558b210a253e893481bd1
+    /etc/ansible/roles/cis/files/core.conf: 8643c993948f4797309ea9631d8b5bfe0e79170b859510b339bc7ccd12a1b03a
+    /etc/ansible/roles/cis/files/issue: a352787304225e7d154ce99082e9fb68db6fed543359f7b550e1ba7ee74a703b
+    /etc/ansible/roles/cis/files/journald.conf: 5caaa5d0fa3cfdeda7415bf8c98c1e19b2d081063669cc492af179531901c111
+    /etc/ansible/roles/cis/files/lx-admin: 18a3bb4445baf60989848db1f12a95ad1389371ccb7d08212896db001cb2b78b
+    /etc/ansible/roles/cis/files/motd: 396ac6b31ee3b7e5ddd270005edd4117597ce4c8abfd41f0c215b78c2a29d64a
+    /etc/ansible/roles/cis/files/pam_env.conf: 7038e2676178dcda6a9bdd6b8948af8206af56f5291cb2cda7f563a9904c15bd
+    /etc/ansible/roles/cis/files/sshd_config: b2bf9cd3bf94bb4db736861b5f4fadcd8a1987fb26208d6b5882b7b92ac1211e
+    /etc/ansible/roles/cis/files/sudoers: 6d67cf04bc0d974c7d14d0008bfb2fd86995e0d6b33d0ff183218e57b81ab51e
+    /etc/ansible/roles/cis/files/tmout.csh: 9fc05d5574c949692d127a80c410c264b6008ad2a26c27c5f32c2ee93ca2c8b6
+    /etc/ansible/roles/cis/files/tmout.ksh: 9fc05d5574c949692d127a80c410c264b6008ad2a26c27c5f32c2ee93ca2c8b6
+    /etc/ansible/roles/cis/files/tmout.sh: 9fc05d5574c949692d127a80c410c264b6008ad2a26c27c5f32c2ee93ca2c8b6

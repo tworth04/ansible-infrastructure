@@ -1,0 +1,7 @@
+splunk_rpm: splunkforwarder-9.2.1-78803f08aabb.x86_64.rpm 
+splunk_config: user-seed.conf 
+splunk_outputs: outputs.conf 
+splunk_service: splunkd.service 
+splunk_home: /opt/splunkforwarder 
+splunk_user: splunkfwd 
+splunk_group: splunkfwd

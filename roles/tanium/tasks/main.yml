@@ -1,0 +1,64 @@
+---
+
+- name: Check if Tainium is installed 
+  stat:
+    path: /opt/Tanium
+  register: register_tanium
+
+#- name: Copy static configuration files
+#  ansible.builtin.copy:
+#    src: files/yum.conf.tmp 
+#    dest: /etc/yum.conf
+
+#- name: Copy static configuration files
+#  ansible.builtin.copy:
+#    src: files/yum.conf.tmp
+#    dest: /etc/dnf/dnf.conf
+
+#- name: yum clean all
+#  command: yum clean all
+
+- name: remove Tanium
+  command: yum --setopt=tsflags=noscripts remove TaniumClient -y
+
+- name: Remove Tanium
+  yum:
+    name: TaniumClient 
+    state: absent
+    #disable_gpg_check: true
+    disablerepo: "*" 
+  async: 60
+  poll: 5
+
+- name: Remove Tanium Folder
+  file:
+    path: /opt/Tanium
+    state: absent
+
+- name: Install the correct tanium agent2 for RHEL
+  #import_tasks: rhel7.yml
+  include_tasks: rhel7.yml
+  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "7" and not register_traps.stat.exists
+#  tags: install
+
+- name: Install the correct tanium agent2 for RHEL
+  include_tasks: rhel8.yml
+    #  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "8" not register_traps.stat.exists
+  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "8"
+#  tags: install
+
+- name: Install the correct tanium agent2 for RHEL
+  include_tasks: rhel9.yml
+  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] >= "9" and not register_tanium.stat.exists
+#  when: ansible_facts['distribution'] == "Rocky" and ansible_facts['distribution_version'] >= "9" and not register_traps.stat.exists
+#  tags: install
+
+#- name: Copy static configuration files
+#  ansible.builtin.copy:
+#    src: files/yum.conf 
+#    dest: /etc/yum.conf
+
+#- name: Copy static configuration files
+#  ansible.builtin.copy:
+#    src: files/yum.conf
+#    dest: /etc/dnf/dnf.conf

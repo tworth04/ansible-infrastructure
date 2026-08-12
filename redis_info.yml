@@ -1,0 +1,19 @@
+---
+- name: Get Redis Keyspace Info
+  hosts: all
+  gather_facts: no
+  tasks:
+
+    - name: Get Redis keyspace info
+      run_once: true
+      delegate_to: "{{ ansible_host }}"
+      become: yes
+      shell: "ps ax | grep redis | grep -v grep | awk '{print $NF}' | sed 's/.*://'"
+      register: redis_ports
+      
+    - name: Get Redis keyspace info
+      delegate_to: "{{ ansibe_host }}"
+      become: yes
+      shell: "redis-cli -p {{ item.stdout }} INFO keyspace"
+      with_items: "{{ redis_ports.results }}"
+

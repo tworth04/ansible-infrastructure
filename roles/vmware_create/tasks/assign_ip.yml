@@ -1,0 +1,46 @@
+- name: Run nmap scan to find available IPs in the VLAN
+  community.general.nmap_scan:
+    network: "{{ nmap_scan_network }}"
+    args:
+      '-sn'
+  register: nmap_results
+
+- name: Determine an available IP address
+  set_fact:
+    assigned_ip: "{{ item.address }}"
+  loop: "{{ nmap_results.results }}"
+  until: assigned_ip is defined and assigned_ip not in used_ips
+
+- name: Update VM network settings to assign the dynamic IP
+  vsphere_guest_network_interfaces:
+    hostname: "{{ vsphere_hostname }}"
+    username: "{{ vsphere_username }}"
+    password: "{{ vsphere_password }}"
+    validate_certs: no
+    datacenter: "{{ datacenter_name }}"
+    folder: "/{{ resource_pool_name }}/vm"
+    name: "{{ vm_name }}"
+    network: "{{ network_name }}"
+    ip_address: "{{ assigned_ip }}"
+    state: present
+
+- debug:
+    msg: "Assigned IP to VM: {{ assigned_ip }}"
+
+- name: Create or update ansible.cfg
+  copy:
+    content: |
+      [defaults]
+      inventory = {{ hosts_inventory_path }}
+      roles_path = ../roles/
+    dest: "{{ ansible_config_path }}"
+
+- name: Add new host to the inventory file
+  lineinfile:
+    path: "{{ hosts_inventory_path }}"
+    regexp: '^{{ vm_name }}'
+    line: '{{ vm_name }} ansible_host={{ assigned_ip }} ansible_ssh_user=your_username ansible_ssh_private_key_file=/path/to/private-key.pem'
+    create: yes
+
+- debug:
+    msg: "VM {{ vm_name }} has been added to the inventory file."

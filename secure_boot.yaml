@@ -1,0 +1,65 @@
+---
+- name: Manage Secure Boot on VMware VMs
+  hosts: '{{ target | default("all") }}'
+  gather_facts: false
+  connection: local
+
+  # NOTE: This playbook assumes variables (hostname, username, password, validate_certs)
+  # are defined externally via dynamic inventory, group_vars, or an included Ansible Vault file.
+
+  tasks:
+    - name: Set flag to perform secure boot actions
+      ansible.builtin.set_fact:
+        perform_secure_boot_actions: >
+          {{ (hostvars[inventory_hostname]['config']['bootOptions']['efiSecureBootEnabled'] | default(false)) and
+             (hostvars[inventory_hostname]['config']['firmware'] == 'efi') }}
+
+    - name: Get current VM power state and details
+      community.vmware.vmware_guest_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        uuid: "{{ hostvars[inventory_hostname]['config']['instanceUuid'] }}"
+        use_instance_uuid: true
+        validate_certs: "{{ validate_certs | bool }}"
+      register: vm_info
+      when: perform_secure_boot_actions
+
+    - name: Ensure VM is powered off before changing settings
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        uuid: "{{ hostvars[inventory_hostname]['config']['instanceUuid'] }}"
+        use_instance_uuid: true
+        state: powered-off
+        validate_certs: "{{ validate_certs | bool }}"
+      when: perform_secure_boot_actions and vm_info.instance.hw_power_status == 'poweredOn'
+      ignore_errors: true
+      
+    - name: Disable Secure Boot for the VM
+      community.vmware.vmware_guest_boot_manager:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        uuid: "{{ hostvars[inventory_hostname]['config']['instanceUuid'] }}"
+        use_instance_uuid: true
+        secure_boot_enabled: false
+        validate_certs: "{{ validate_certs | bool }}"
+      when: perform_secure_boot_actions
+      
+    - name: Power on the VM
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        uuid: "{{ hostvars[inventory_hostname]['config']['instanceUuid'] }}"
+        use_instance_uuid: true
+        state: powered-on
+        validate_certs: "{{ validate_certs | bool }}"
+      when: perform_secure_boot_actions
+
+    - name: Debug if secure boot is not enabled
+      ansible.builtin.debug:
+        msg: "Secure Boot is not enabled for {{ inventory_hostname }}, skipping."
+      when: not perform_secure_boot_actions

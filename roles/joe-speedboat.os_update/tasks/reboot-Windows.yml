@@ -1,0 +1,8 @@
+---
+- name: show if windows has rebooted with updates
+  debug:
+    msg: 
+    - "win_updates.reboot_required: {{ win_updates.reboot_required }}"
+    - "os_update_reboot: {{ os_update_reboot }}"
+    - "INFO: throttle: {{ os_update_conc_reboot }} is not implemented"
+  changed_when: win_updates.reboot_required and os_update_reboot 

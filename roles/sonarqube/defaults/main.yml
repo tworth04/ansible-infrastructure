@@ -1,0 +1,770 @@
+---
+# defaults file for sonarqube
+sonar_version: 25.8.0.112029
+sonarqube_ce: files/sonarqube-25.8.0.112029.zip
+sonar_path: /opt/sonarqube
+sonar_user: sonar
+sonar_group: sonar
+
+# tuning
+sonar_nofile: 131072
+sonar_nproc: 8192
+sonar_max_map_count: 524288
+sonar_log_level: INFO
+sonar_java_opts:
+  web: -Xmx512m -Xms128m
+  es: -Xms512m -Xmx512m
+  ce: -Xmx512m -Xms128m
+
+# sonarqube web interface, should be covered by reverse proxy
+web:
+  host: 0.0.0.0
+  port: 9000
+  path: /
+
+# database connection
+sonar_db:
+  type: postgresql
+  port: 5432
+  host: localhost
+  name: sonar
+  user: sonar
+  password: sonar
+  options:
+
+# sonarqube artifact provider
+sonar_store: https://binaries.sonarsource.com/Distribution/sonarqube
+
+# need to use http for self-signed certificates
+sonar_check_url: http://{{ web.host }}:{{ web.port }}
+sonar_installation: '{{ sonar_path }}/sonarqube-{{ sonar_version }}'
+
+# local download path
+sonar_download: true
+sonar_download_path: /tmp
+
+sonar_proxy_type: nginx
+sonar_proxy_server_name: '{{ ansible_fqdn }}'
+sonar_proxy_http: false
+sonar_proxy_http_port: 80
+sonar_proxy_ssl: true
+sonar_proxy_ssl_port: 443
+sonar_proxy_ssl_cert_path: '/etc/ssl/{{ sonar_proxy_server_name }}/{{ sonar_proxy_server_name }}.pem'
+sonar_proxy_ssl_key_path: '/etc/ssl/{{ sonar_proxy_server_name }}/{{ sonar_proxy_server_name }}.key'
+sonar_proxy_client_max_body_size: 32m
+
+nginx_config_path: /etc/nginx/conf.d/sonar.conf
+
+# Plugin versions
+checkstyle_pversion: "{% if sonar_version is version(\"9.9\", \">=\") %}10.23.0\
+                      {% elif sonar_version is version(\"9.0\", \">=\") %}10.12.5\
+                      {% elif sonar_version is version(\"8.9\", \">=\") %}9.3\
+                      {% elif sonar_version is version(\"7.9\", \">=\") %}8.45.1\
+                      {% else %}4.27\
+                      {% endif %}"
+
+pmd_pversion: "{% if sonar_version is version(\"9.8\", \">=\") %}4.0.1\
+               {% elif sonar_version is version(\"7.0\", \">=\") %}3.4.0\
+               {% else %}2.6\
+               {% endif %}"
+
+findbugs_pversion: "{% if sonar_version is version(\"9.9\", \">=\") %}4.4.2\
+                    {% elif sonar_version is version(\"7.6\", \">=\") %}4.2.10\
+                    {% else %}0.0.0\
+                    {% endif %}"
+
+jdepend_pversion: "{% if sonar_version is version(\"10.4\", \">=\") %}0.0.0\
+                   {% else %}1.1.1\
+                   {% endif %}"
+
+mutation_pversion: "{% if sonar_version is version(\"9.0\", \">=\") %}1.8\
+                    {% else %}1.7\
+                    {% endif %}"
+
+jproperties_pversion: "{% if sonar_version is version(\"9.0\", \">=\") %}0.0.0\
+                       {% else %}2.6\
+                       {% endif %}"
+
+groovy_pversion: "{% if sonar_version is version(\"8.0\", \">=\") %}1.8\
+                  {% else %}1.7\
+                  {% endif %}"
+
+dependency_check_pversion: "{% if sonar_version is version(\"10.2\", \">=\") %}5.0.0\
+                            {% elif sonar_version is version(\"9.9\", \">=\") %}4.0.1\
+                            {% elif sonar_version is version(\"8.9\", \">=\") %}3.1.0\
+                            {% elif sonar_version is version(\"7.6\", \">=\") %}2.0.8\
+                            {% elif sonar_version is version(\"7.3\", \">=\") %}1.2.1\
+                            {% else %}1.1.6\
+                            {% endif %}"
+
+json_pversion: "{% if sonar_version is version(\"9.0\", \">=\") %}0.0.0\
+                {% else %}2.3\
+                {% endif %}"
+
+yaml_pversion: "{% if sonar_version is version(\"8.0\", \">=\") %}1.9.1\
+                {% else %}1.8.1\
+                {% endif %}"
+
+ansible_pversion: 2.5.1
+
+shellcheck_pversion: "{% if sonar_version is version(\"7.4\", \">=\") %}2.5.0\
+                      {% else %}2.2.1\
+                      {% endif %}"
+
+java_pversion: "{% if sonar_version is version(\"24.12\", \">=\") %}8.12.0.38599\
+                {% elif sonar_version is version(\"9.6\", \">=\") %}8.9.1.38281\
+                {% elif sonar_version is version(\"8.9\", \">=\") %}7.17.0.31219\
+                {% elif sonar_version is version(\"7.9\", \">=\") %}7.6.0.28201\
+                {% elif sonar_version is version(\"7.0\", \">=\") %}5.14.0.18788\
+                {% else %}0.0.0\
+                {% endif %}"
+
+javascript_pversion: "{% if sonar_version is version(\"10.0\", \">=\") %}10.22.0.32148\
+                      {% elif sonar_version is version(\"9.2\", \">=\") %}9.13.0.20537\
+                      {% elif sonar_version is version(\"8.9\", \">=\") %}8.5.0.16762\
+                      {% elif sonar_version is version(\"8.0\", \">=\") %}8.3.0.16208\
+                      {% elif sonar_version is version(\"7.9\", \">=\") %}6.7.0.14237\
+                      {% elif sonar_version is version(\"7.0\", \">=\") %}5.2.1.7778\
+                      {% else %}0.0.0\
+                      {% endif %}"
+
+typescript_pversion: "{% if sonar_version is version(\"8.9\", \">=\") %}0.0.0\
+                      {% else %}2.1.0.4359\
+                      {% endif %}"
+
+git_pversion: "{% if sonar_version is version(\"8.5.0.37579\", \">=\") %}0.0.0\
+               {% elif sonar_version is version(\"7.0\", \">=\") %}1.12.1.2064\
+               {% else %}0.0.0\
+               {% endif %}"
+
+xml_pversion: "{% if sonar_version is version(\"10.1\", \">=\") %}2.13.0.5938\
+               {% elif sonar_version is version(\"9.9\", \">=\") %}2.10.0.4108\
+               {% elif sonar_version is version(\"8.9\", \">=\") %}2.7.0.3820\
+               {% elif sonar_version is version(\"7.0\", \">=\") %}2.4.0.3273\
+               {% else %}0.0.0\
+               {% endif %}"
+
+python_pversion: "{% if sonar_version is version(\"9.6\", \">=\") %}4.26.0.19456\
+                  {% elif sonar_version is version(\"7.9\", \">=\") %}4.1.0.11333\
+                  {% elif sonar_version is version(\"7.0\", \">=\") %}1.14.1.3143\
+                  {% else %}0.0.0\
+                  {% endif %}"
+
+kotlin_pversion: "{% if sonar_version is version(\"24.12\", \">=\") %}3.1.0.7071\
+                  {% elif sonar_version is version(\"9.6\", \">=\") %}2.23.0.6359\
+                  {% elif sonar_version is version(\"7.3\", \">=\") %}2.12.1.2158\
+                  {% else %}0.0.0\
+                  {% endif %}"
+
+css_pversion: "{% if sonar_version is version(\"9.2\", \">=\") %}0.0.0\
+               {% elif sonar_version is version(\"7.9\", \">=\") %}1.4.2.2002\
+               {% else %}1.1.1.1010\
+               {% endif %}"
+
+html_pversion: "{% if sonar_version is version(\"9.6\", \">=\") %}3.19.0.5695\
+                {% elif sonar_version is version(\"7.9\", \">=\") %}3.7.1.3306\
+                {% else %}3.2.0.2082\
+                {% endif %}"
+
+php_pversion: "{% if sonar_version is version(\"9.6\", \">=\") %}3.45.0.12991\
+               {% elif sonar_version is version(\"7.9\", \">=\") %}3.28.0.9490\
+               {% elif sonar_version is version(\"7.8\", \">=\") %}3.1.1.4762\
+               {% elif sonar_version is version(\"7.0\", \">=\") %}3.0.0.4537\
+               {% else %}0.0.0\
+               {% endif %}"
+
+jacoco_pversion: 1.3.0.1538
+
+iac_pversion: "{% if sonar_version is version(\"9.6\", \">=\") %}1.42.0.14460\
+               {% elif sonar_version is version(\"8.9\", \">=\") %}1.16.0.3845\
+               {% else %}0.0.0\
+               {% endif %}"
+
+config_pversion: 0.0.0
+
+cayc_pversion: "{% if sonar_version is version(\"8.9\", \">=\") %}2.4.0.2018\
+                {% else %}0.0.0\
+                {% endif %}"
+
+flex_pversion: "{% if sonar_version is version(\"10.7\", \">=\") %}2.14.0.5032\
+                {% elif sonar_version is version(\"10.1\", \">=\") %}2.13.0.4905\
+                {% elif sonar_version is version(\"9.9\", \">=\") %}2.8.0.3166\
+                {% else %}2.7.0.2865\
+                {% endif %}"
+
+text_pversion: "{% if sonar_version is version(\"9.8\", \">=\") %}2.21.1.5779\
+                {% elif sonar_version is version(\"8.9\", \">=\") %}1.2.0.510\
+                {% else %}0.0.0\
+                {% endif %}"
+
+dotnet_pversion: "{% if sonar_version is version(\"24.12\", \">=\") %}10.8.0.113526\
+                  {% elif sonar_version is version(\"9.6\", \">=\") %}10.2.0.105762\
+                  {% else %}9.0.0.68202\
+                  {% endif %}"
+
+smell_pversion: "{% if sonar_version is version(\"7.9\", \">=\") %}4.0.0\
+                 {% else %}0.0.0\
+                 {% endif %}"
+
+badges_pversion: 3.0.1
+
+auth_github_pversion: "{% if sonar_version is version(\"8.0\", \">=\") %}0.0.0\
+                       {% else %}1.5.0.870\
+                       {% endif %}"
+
+auth_bitbucket_epversion: "{% if sonar_version is version(\"9.2\", \">=\") %}\
+  https://binaries.sonarsource.com/Distribution/sonar-auth-bitbucket-plugin/sonar-auth-bitbucket-plugin-0.0.0.jar\
+                           {% elif sonar_version is version(\"7.2\", \">=\") %}\
+  https://binaries.sonarsource.com/Distribution/sonar-auth-bitbucket-plugin/sonar-auth-bitbucket-plugin-1.1.0.381.jar\
+                           {% else %}\
+  https://github.com/SonarSource/sonar-auth-bitbucket/releases/download/1.0/sonar-auth-bitbucket-plugin-1.0.jar\
+                           {% endif %}"
+
+bitbucket_pversion: 1.3.0
+
+stash_pversion: 1.6.0
+
+auth_gitlab_pversion: "{% if sonar_version is version(\"8.0\", \">=\") %}0.0.0\
+                       {% else %}1.3.2\
+                       {% endif %}"
+
+gitlab_pversion: "{% if sonar_version is version(\"7.0\", \">=\") %}4.1.0-SNAPSHOT\
+                  {% else %}3.0.2\
+                  {% endif %}"
+
+xanitizer_pversion: "{% if sonar_version is version(\"7.9\", \">=\") %}2.2.0\
+                     {% elif sonar_version is version(\"7.3\", \">=\") %}2.0.0\
+                     {% else %}1.5.0\
+                     {% endif %}"
+
+build_breaker_epversion: "{% if sonar_version is version(\"7.3\", \">=\") %}2.3.1/sonar-build-breaker-plugin-2.3.1.347.jar\
+                         {% else %}2.2/sonar-build-breaker-plugin-2.2.jar\
+                         {% endif %}"
+
+issueresolver_pversion: 1.0.2
+
+branch_pversion: "{% if sonar_version is version(\"24.12\", \">=\") %}1.23.0\
+                  {% elif sonar_version is version(\"10.6\", \">=\") %}1.22.0\
+                  {% elif sonar_version is version(\"10.5\", \">=\") %}1.20.0\
+                  {% elif sonar_version is version(\"10.4\", \">=\") %}1.19.0\
+                  {% elif sonar_version is version(\"10.3\", \">=\") %}1.18.0\
+                  {% elif sonar_version is version(\"10.2\", \">=\") %}1.17.1\
+                  {% elif sonar_version is version(\"10.1\", \">=\") %}1.16.0\
+                  {% elif sonar_version is version(\"10.0\", \">=\") %}1.15.0\
+                  {% elif sonar_version is version(\"9.8\", \">=\") %}1.14.0\
+                  {% elif sonar_version is version(\"9.7\", \">=\") %}1.13.0\
+                  {% elif sonar_version is version(\"9.1\", \">=\") %}1.12.0\
+                  {% elif sonar_version is version(\"9.0\", \">=\") %}1.9.0\
+                  {% elif sonar_version is version(\"8.9.0.43852\", \">=\") %}1.8.3\
+                  {% elif sonar_version is version(\"8.7.0.41497\", \">=\") %}1.7.0\
+                  {% elif sonar_version is version(\"8.5.0.37579\", \">=\") %}1.6.0\
+                  {% elif sonar_version is version(\"8.2.0.32929\", \">=\") %}1.5.0\
+                  {% elif sonar_version is version(\"8.1.0.31237\", \">=\") %}1.4.0\
+                  {% elif sonar_version is version(\"7.8\", \">=\") %}1.3.2\
+                  {% else %}0.0.0\
+                  {% endif %}"
+
+aem_pversion: "{% if sonar_version is version(\"10.5\", \">=\") %}0.0.0\
+               {% elif sonar_version is version(\"8.9\", \">=\") %}1.6\
+               {% else %}1.3\
+               {% endif %}"
+
+sonar_install_recommended_plugins: true
+sonar_recommended_plugins:
+  - 'https://github.com/checkstyle/sonar-checkstyle/releases/download/{{ checkstyle_pversion }}/checkstyle-sonar-plugin-{{ checkstyle_pversion }}.jar'
+
+  - 'https://github.com/SonarQubeCommunity/sonar-pmd/releases/download/{{ pmd_pversion }}/sonar-pmd-plugin-{{ pmd_pversion }}.jar'
+
+  - "https://github.com/spotbugs/sonar-findbugs/releases/download/\
+    {{ findbugs_pversion }}/sonar-findbugs-plugin-{{ findbugs_pversion }}.jar"
+
+  - "https://github.com/willemsrb/sonar-jdepend-plugin/releases/download/\
+    sonar-jdepend-plugin-{{ jdepend_pversion }}/sonar-jdepend-plugin-{{ jdepend_pversion }}.jar"
+
+  - "https://github.com/devcon5io/mutation-analysis-plugin/releases/download/\
+    v{{ mutation_pversion }}/mutation-analysis-plugin-{{ mutation_pversion }}.jar"
+
+  - "https://github.com/racodond/sonar-jproperties-plugin/releases/download/\
+    {{ jproperties_pversion }}/sonar-jproperties-plugin-{{ jproperties_pversion }}.jar"
+
+  - 'https://github.com/Inform-Software/sonar-groovy/releases/download/{{ groovy_pversion }}/sonar-groovy-plugin-{{ groovy_pversion }}.jar'
+
+  - "https://github.com/stevespringett/dependency-check-sonar-plugin/releases/download/{{ dependency_check_pversion }}/\
+    sonar-dependency-check-plugin-{{ dependency_check_pversion }}.jar"
+
+  - 'https://github.com/racodond/sonar-json-plugin/releases/download/{{ json_pversion }}/sonar-json-plugin-{{ json_pversion }}.jar'
+
+    # plugin conflicts with iac plugin: https://github.com/sbaudoin/sonar-yaml/issues/70
+  - 'https://github.com/sbaudoin/sonar-yaml/releases/download/v{{ yaml_pversion }}/sonar-yaml-plugin-{{ yaml_pversion }}.jar'
+
+  - 'https://github.com/sbaudoin/sonar-ansible/releases/download/v{{ ansible_pversion }}/sonar-ansible-plugin-{{ ansible_pversion }}.jar'
+
+  - 'https://github.com/sbaudoin/sonar-ansible/releases/download/v{{ ansible_pversion }}/sonar-ansible-extras-plugin-{{ ansible_pversion }}.jar'
+
+  - 'https://github.com/sbaudoin/sonar-shellcheck/releases/download/v{{ shellcheck_pversion }}/sonar-shellcheck-plugin-{{ shellcheck_pversion }}.jar'
+
+sonar_update_default_plugins: true
+sonar_default_plugins:
+  - 'https://binaries.sonarsource.com/Distribution/sonar-java-plugin/sonar-java-plugin-{{ java_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-{{ javascript_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-typescript-plugin/sonar-typescript-plugin-{{ typescript_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-scm-git-plugin/sonar-scm-git-plugin-{{ git_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-xml-plugin/sonar-xml-plugin-{{ xml_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-python-plugin/sonar-python-plugin-{{ python_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-kotlin-plugin/sonar-kotlin-plugin-{{ kotlin_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-css-plugin/sonar-css-plugin-{{ css_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-html-plugin/sonar-html-plugin-{{ html_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-php-plugin/sonar-php-plugin-{{ php_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-jacoco-plugin/sonar-jacoco-plugin-{{ jacoco_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-iac-plugin/sonar-iac-plugin-{{ iac_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-config-plugin/sonar-config-plugin-{{ config_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-text-plugin/sonar-text-plugin-{{ text_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-csharp-plugin/sonar-csharp-plugin-{{ dotnet_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-vbnet-plugin/sonar-vbnet-plugin-{{ dotnet_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-cayc-plugin/sonar-cayc-plugin-{{ cayc_pversion }}.jar'
+  - 'https://binaries.sonarsource.com/Distribution/sonar-flex-plugin/sonar-flex-plugin-{{ flex_pversion }}.jar'
+
+sonar_install_optional_plugins: false
+
+branch_plugin_url: "https://github.com/mc1arke/sonarqube-community-branch-plugin/releases/download/\
+                    {{ branch_pversion }}/sonarqube-community-branch-plugin-{{ branch_pversion }}.jar"
+sonar_optional_plugins:
+
+  - "https://github.com/QualInsight/qualinsight-plugins-sonarqube-smell/releases/download/\
+    qualinsight-plugins-sonarqube-smell-{{ smell_pversion }}/qualinsight-sonarqube-smell-plugin-{{ smell_pversion }}.jar"
+
+#   Plugin is not supported in SonarQube 7.3+
+#   https://github.com/QualInsight/qualinsight-plugins-sonarqube-badges/issues/82
+  - "https://github.com/QualInsight/qualinsight-plugins-sonarqube-badges/releases/download/\
+    qualinsight-plugins-sonarqube-badges-{{ badges_pversion }}/qualinsight-sonarqube-badges-{{ badges_pversion }}.jar"
+
+#   Plugin is not supported in SonarQube 8+
+  - 'https://binaries.sonarsource.com/Distribution/sonar-auth-github-plugin/sonar-auth-github-plugin-{{ auth_github_pversion }}.jar'
+
+  - '{{ auth_bitbucket_epversion }}'
+
+#   Plugin is not supported in SonarQube 7.7+
+  - 'https://github.com/Soyn/sonar-bitbucket-plugin/releases/download/v{{ bitbucket_pversion }}/sonar-bitbucket-plugin-{{ bitbucket_pversion }}.jar'
+
+#   Plugin is not supported in SonarQube 7.7+
+  - 'https://github.com/AmadeusITGroup/sonar-stash/releases/download/{{ stash_pversion }}/sonar-stash-plugin-{{ stash_pversion }}.jar'
+
+#   Plugin is not supported in SonarQube 8+
+  - "https://github.com/gabrie-allaigre/sonar-auth-gitlab-plugin/releases/download/\
+    {{ auth_gitlab_pversion }}/sonar-auth-gitlab-plugin-{{ auth_gitlab_pversion }}.jar"
+
+#   Plugin is not supported in SonarQube 7.6+
+  - 'https://github.com/gabrie-allaigre/sonar-gitlab-plugin/releases/download/{{ gitlab_pversion }}/sonar-gitlab-plugin-{{ gitlab_pversion }}.jar'
+
+  - 'https://github.com/RIGS-IT/sonar-xanitizer/releases/download/{{ xanitizer_pversion }}/sonar-xanitizer-plugin-{{ xanitizer_pversion }}.jar'
+
+  - 'https://github.com/adnovum/sonar-build-breaker/releases/download/{{ build_breaker_epversion }}'
+
+  - "https://github.com/willemsrb/sonar-issueresolver-plugin/releases/download/sonar-issueresolver-plugin-{{ issueresolver_pversion }}/\
+    sonar-issueresolver-plugin-{{ issueresolver_pversion }}.jar"
+
+  - '{{ branch_plugin_url }}'
+
+  - "https://github.com/wttech/AEM-Rules-for-SonarQube/releases/download/\
+    v{{ aem_pversion }}/sonar-aemrules-plugin-{{ aem_pversion }}.jar"
+
+sonar_all_plugins: "{{ sonar_install_recommended_plugins | ternary(sonar_recommended_plugins, []) + \
+                       sonar_update_default_plugins | ternary(sonar_default_plugins, []) + \
+                       sonar_install_optional_plugins | ternary(sonar_optional_plugins, []) }}"
+
+sonar_plugins_path: "{% if sonar_version is version(\"8.5.0.37579\", \">=\") %}sonarqube-{{ sonar_version }}/lib/extensions\
+                     {% else %}sonarqube-{{ sonar_version }}/extensions/plugins\
+                     {% endif %}"
+
+sonar_plugins_dir: "{{ sonar_installation }}/extensions/plugins"
+
+# Exclude old plugins that go with SonarQube installations
+sonar_excluded_plugins:
+  - 'sonar-java-plugin-5.4.0.14284.jar'
+  - 'sonar-java-plugin-5.6.1.15064.jar'
+  - 'sonar-java-plugin-5.8.0.15699.jar'
+  - 'sonar-java-plugin-5.9.2.16552.jar'
+  - 'sonar-java-plugin-5.10.1.16922.jar'
+  - 'sonar-java-plugin-5.11.0.17289.jar'
+  - 'sonar-java-plugin-5.13.0.18197.jar'
+  - 'sonar-java-plugin-5.13.1.18282.jar'
+  - 'sonar-java-plugin-5.14.0.18788.jar'
+  - 'sonar-java-plugin-6.1.0.20866.jar'
+  - 'sonar-java-plugin-6.3.0.21585.jar'
+  - 'sonar-java-plugin-6.5.1.22586.jar'
+  - 'sonar-java-plugin-6.8.0.23379.jar'
+  - 'sonar-java-plugin-6.9.0.23563.jar'
+  - 'sonar-java-plugin-6.12.0.24852.jar'
+  - 'sonar-java-plugin-6.14.0.25463.jar'
+  - 'sonar-java-plugin-6.15.1.26025.jar'
+  - 'sonar-java-plugin-7.1.0.26670.jar'
+  - 'sonar-java-plugin-7.3.0.27589.jar'
+  - 'sonar-java-plugin-7.5.0.28054.jar'
+  - 'sonar-java-plugin-7.7.0.28547.jar'
+  - 'sonar-java-plugin-7.11.0.29148.jar'
+  - 'sonar-java-plugin-7.12.0.29739.jar'
+  - 'sonar-java-plugin-7.13.0.29990.jar'
+  - 'sonar-java-plugin-7.14.0.30229.jar'
+  - 'sonar-java-plugin-7.15.0.30507.jar'
+  - 'sonar-java-plugin-7.16.0.30901.jar'
+  - 'sonar-java-plugin-7.17.0.31219.jar'
+  - 'sonar-java-plugin-7.20.0.31692.jar' # 10.1
+  - 'sonar-java-plugin-7.24.0.32100.jar' # 10.2
+  - 'sonar-java-plugin-7.27.1.33504.jar' # 10.3
+  - 'sonar-java-plugin-7.30.0.34429.jar' # 10.4
+  - 'sonar-java-plugin-7.33.0.35775.jar' # 10.5
+  - 'sonar-java-plugin-8.0.1.36337.jar' # 10.6
+  - 'sonar-java-plugin-8.2.0.36672.jar' # 10.7
+  - 'sonar-java-plugin-8.7.0.37452.jar' # 24.12
+  - 'sonar-java-plugin-8.8.0.37665.jar' # 25.01
+  - 'sonar-java-plugin-8.9.0.37768.jar' # 25.02
+  - 'sonar-java-plugin-8.10.0.38194.jar' # 25.03
+  - 'sonar-java-plugin-8.11.0.38440.jar' # 25.04
+
+  - 'sonar-javascript-plugin-4.1.0.6085.jar'
+  - 'sonar-javascript-plugin-4.2.0.6476.jar'
+  - 'sonar-javascript-plugin-5.0.0.6962.jar'
+  - 'sonar-javascript-plugin-5.1.1.7506.jar'
+  - 'sonar-javascript-plugin-5.2.1.7778.jar'
+  - 'sonar-javascript-plugin-6.1.0.11503.jar'
+  - 'sonar-javascript-plugin-6.2.0.12043.jar'
+  - 'sonar-javascript-plugin-6.2.1.12157.jar'
+  - 'sonar-javascript-plugin-6.5.0.13383.jar'
+  - 'sonar-javascript-plugin-7.0.1.14561.jar'
+  - 'sonar-javascript-plugin-7.2.0.14938.jar'
+  - 'sonar-javascript-plugin-7.3.0.15071.jar'
+  - 'sonar-javascript-plugin-7.4.4.15624.jar'
+  - 'sonar-javascript-plugin-8.1.0.15788.jar'
+  - 'sonar-javascript-plugin-8.4.0.16431.jar'
+  - 'sonar-javascript-plugin-8.6.0.16913.jar'
+  - 'sonar-javascript-plugin-8.8.0.17228.jar'
+  - 'sonar-javascript-plugin-9.1.0.17747.jar'
+  - 'sonar-javascript-plugin-9.3.0.18033.jar'
+  - 'sonar-javascript-plugin-9.6.0.18814.jar'
+  - 'sonar-javascript-plugin-9.9.0.19492.jar'
+  - 'sonar-javascript-plugin-9.12.0.20319.jar'
+  - 'sonar-javascript-plugin-9.13.0.20537.jar'
+  - 'sonar-javascript-plugin-10.1.0.21143.jar'
+  - 'sonar-javascript-plugin-10.3.1.21905.jar' # 10.1
+  - 'sonar-javascript-plugin-10.5.1.22382.jar' # 10.2
+  - 'sonar-javascript-plugin-10.9.0.24449.jar' # 10.3
+  - 'sonar-javascript-plugin-10.11.1.25225-multi.jar' # 10.4
+  - 'sonar-javascript-plugin-10.13.2.25981-multi.jar' # 10.5
+  - 'sonar-javascript-plugin-10.14.0.26080-multi.jar' # 10.6
+  - 'sonar-javascript-plugin-10.16.0.27621-multi.jar' # 10.7
+  - 'sonar-javascript-plugin-10.18.0.28572-multi.jar' # 24.12
+  - 'sonar-javascript-plugin-10.20.0.29356-multi.jar' # 25.01
+  - 'sonar-javascript-plugin-10.21.1.30825-multi.jar' # 25.03
+
+  - 'sonar-typescript-plugin-1.7.0.2893.jar'
+  - 'sonar-typescript-plugin-1.8.0.3332.jar'
+  - 'sonar-typescript-plugin-1.9.0.3766.jar'
+
+  - 'sonar-scm-git-plugin-1.4.1.1128.jar'
+  - 'sonar-scm-git-plugin-1.6.0.1349.jar'
+  - 'sonar-scm-git-plugin-1.7.0.1491.jar'
+  - 'sonar-scm-git-plugin-1.8.0.1574.jar'
+  - 'sonar-scm-git-plugin-1.9.1.1834.jar'
+  - 'sonar-scm-git-plugin-1.11.1.2008.jar'
+  - 'sonar-scm-git-plugin-1.12.0.2034.jar'
+
+  - 'sonar-xml-plugin-1.5.1.1452.jar'
+  - 'sonar-xml-plugin-2.0.1.2020.jar'
+  - 'sonar-xml-plugin-2.1.0.2861.jar'
+  - 'sonar-xml-plugin-2.2.0.2973.jar'
+  - 'sonar-xml-plugin-2.3.0.3155.jar'
+  - 'sonar-xml-plugin-2.4.0.3273.jar'
+  - 'sonar-xml-plugin-2.5.0.3376.jar'
+  - 'sonar-xml-plugin-2.6.1.3686.jar'
+  - 'sonar-xml-plugin-2.7.0.3820.jar'
+  - 'sonar-xml-plugin-2.8.1.4006.jar' # 10.1
+  - 'sonar-xml-plugin-2.10.0.4108.jar' # 10.2
+  - 'sonar-xml-plugin-2.12.0.5749.jar' # 24.12
+
+  - 'sonar-python-plugin-1.10.0.2131.jar'
+  - 'sonar-python-plugin-1.11.0.2473.jar'
+  - 'sonar-python-plugin-1.13.0.2922.jar'
+  - 'sonar-python-plugin-1.14.0.3086.jar'
+  - 'sonar-python-plugin-1.14.1.3143.jar'
+  - 'sonar-python-plugin-1.16.0.4432.jar'
+  - 'sonar-python-plugin-2.3.0.5351.jar'
+  - 'sonar-python-plugin-2.5.0.5733.jar'
+  - 'sonar-python-plugin-2.8.0.6204.jar'
+  - 'sonar-python-plugin-2.13.0.7236.jar'
+  - 'sonar-python-plugin-3.1.0.7619.jar'
+  - 'sonar-python-plugin-3.2.0.7856.jar'
+  - 'sonar-python-plugin-3.4.0.7980.jar'
+  - 'sonar-python-plugin-3.4.1.8066.jar'
+  - 'sonar-python-plugin-3.5.0.8244.jar'
+  - 'sonar-python-plugin-3.6.0.8488.jar'
+  - 'sonar-python-plugin-3.8.0.8883.jar'
+  - 'sonar-python-plugin-3.9.0.9230.jar'
+  - 'sonar-python-plugin-3.12.0.9583.jar'
+  - 'sonar-python-plugin-3.13.0.9611.jar'
+  - 'sonar-python-plugin-3.15.1.9817.jar'
+  - 'sonar-python-plugin-3.19.0.10254.jar'
+  - 'sonar-python-plugin-3.21.0.10628.jar'
+  - 'sonar-python-plugin-3.24.0.10784.jar'
+  - 'sonar-python-plugin-3.24.1.11916.jar' # 9.9.2
+  - 'sonar-python-plugin-4.1.0.11333.jar'
+  - 'sonar-python-plugin-4.3.0.11660.jar' # 10.1
+  - 'sonar-python-plugin-4.7.0.12181.jar' # 10.2
+  - 'sonar-python-plugin-4.10.0.13725.jar' # 10.3
+  - 'sonar-python-plugin-4.14.0.14263.jar' # 10.4
+  - 'sonar-python-plugin-4.17.0.14845.jar' # 10.5
+  - 'sonar-python-plugin-4.19.0.15616.jar' # 10.6
+  - 'sonar-python-plugin-4.22.0.16914.jar' # 10.7
+  - 'sonar-python-plugin-4.24.0.18631.jar' # 24.12
+  - 'sonar-python-plugin-4.25.0.19056.jar' # 25.01
+  - 'sonar-python-plugin-4.26.0.19456.jar' # 25.02
+  - 'sonar-python-plugin-5.0.0.20426.jar' # 25.03
+  - 'sonar-python-plugin-5.2.0.20808.jar' # 25.04
+
+  - 'sonar-kotlin-plugin-1.0.1.965.jar'
+  - 'sonar-kotlin-plugin-1.2.1.2009.jar'
+  - 'sonar-kotlin-plugin-1.4.0.155.jar'
+  - 'sonar-kotlin-plugin-1.5.0.315.jar'
+  - 'sonar-kotlin-plugin-1.8.1.1804.jar'
+  - 'sonar-kotlin-plugin-1.8.2.1946.jar'
+  - 'sonar-kotlin-plugin-1.8.3.2219.jar'
+  - 'sonar-kotlin-plugin-2.0.1.110.jar'
+  - 'sonar-kotlin-plugin-2.2.0.499.jar'
+  - 'sonar-kotlin-plugin-2.7.0.948.jar'
+  - 'sonar-kotlin-plugin-2.9.0.1147.jar'
+  - 'sonar-kotlin-plugin-2.10.0.1456.jar'
+  - 'sonar-kotlin-plugin-2.12.0.1956.jar'
+  - 'sonar-kotlin-plugin-2.13.0.2116.jar'
+  - 'sonar-kotlin-plugin-2.15.0.2579.jar' # 10.1
+  - 'sonar-kotlin-plugin-2.17.0.2902.jar' # 10.2
+  - 'sonar-kotlin-plugin-2.18.0.2938.jar' # 10.3
+  - 'sonar-kotlin-plugin-2.20.0.4382.jar' # 10.4
+  - 'sonar-kotlin-plugin-2.21.0.5736.jar' # 24.12
+  - 'sonar-kotlin-plugin-2.22.0.5972.jar' # 25.01
+  - 'sonar-kotlin-plugin-3.0.1.6889.jar' # 25.04
+
+  - 'sonar-css-plugin-1.0.1.508.jar'
+  - 'sonar-css-plugin-1.0.2.611.jar'
+  - 'sonar-css-plugin-1.0.3.724.jar'
+  - 'sonar-css-plugin-1.1.0.993.jar'
+  - 'sonar-css-plugin-1.1.1.1010.jar'
+  - 'sonar-css-plugin-1.2.0.1325.jar'
+  - 'sonar-css-plugin-1.3.0.1580.jar'
+  - 'sonar-css-plugin-1.3.1.1642.jar'
+  - 'sonar-css-plugin-1.3.2.1782.jar'
+  - 'sonar-css-plugin-1.4.0.1899.jar'
+  - 'sonar-css-plugin-1.4.2.2002.jar'
+
+  - 'sonar-php-plugin-2.13.0.3107.jar'
+  - 'sonar-php-plugin-2.14.0.3569.jar'
+  - 'sonar-php-plugin-2.15.0.4060.jar'
+  - 'sonar-php-plugin-2.16.0.4355.jar'
+  - 'sonar-php-plugin-3.0.0.4537.jar'
+  - 'sonar-php-plugin-3.1.1.4762.jar'
+  - 'sonar-php-plugin-3.2.0.4868.jar'
+  - 'sonar-php-plugin-3.3.0.5166.jar'
+  - 'sonar-php-plugin-3.5.0.5655.jar'
+  - 'sonar-php-plugin-3.9.0.6331.jar'
+  - 'sonar-php-plugin-3.13.0.6849.jar'
+  - 'sonar-php-plugin-3.15.0.7197.jar'
+  - 'sonar-php-plugin-3.16.0.7320.jar'
+  - 'sonar-php-plugin-3.17.0.7439.jar'
+  - 'sonar-php-plugin-3.20.0.8080.jar'
+  - 'sonar-php-plugin-3.21.2.8292.jar'
+  - 'sonar-php-plugin-3.22.1.8626.jar'
+  - 'sonar-php-plugin-3.23.1.8766.jar'
+  - 'sonar-php-plugin-3.24.0.8949.jar'
+  - 'sonar-php-plugin-3.25.0.9077.jar'
+  - 'sonar-php-plugin-3.27.1.9352.jar'
+  - 'sonar-php-plugin-3.28.0.9490.jar'
+  - 'sonar-php-plugin-3.30.0.9766.jar' # 10.1
+  - 'sonar-php-plugin-3.32.0.10180.jar' # 10.2
+  - 'sonar-php-plugin-3.33.0.11274.jar' # 10.3
+  - 'sonar-php-plugin-3.35.0.11659.jar' # 10.5
+  - 'sonar-php-plugin-3.36.0.11813.jar' # 10.6
+  - 'sonar-php-plugin-3.38.0.12239.jar' # 10.7
+  - 'sonar-php-plugin-3.40.0.12590.jar' # 24.12
+  - 'sonar-php-plugin-3.41.0.12692.jar' # 25.01
+  - 'sonar-php-plugin-3.42.0.12795.jar' # 25.02
+  - 'sonar-php-plugin-3.44.0.12898.jar' # 25.03
+  - 'sonar-php-plugin-3.45.0.12991.jar' # 25.04
+
+  - 'sonar-html-plugin-3.1.0.1615.jar'
+  - 'sonar-html-plugin-3.2.0.2082.jar'
+  - 'sonar-html-plugin-3.3.0.2534.jar'
+  - 'sonar-html-plugin-3.4.0.2754.jar'
+  - 'sonar-html-plugin-3.6.0.3106.jar'
+  - 'sonar-html-plugin-3.7.1.3306.jar'
+  - 'sonar-html-plugin-3.8.0.3510.jar' # 10.1
+  - 'sonar-html-plugin-3.9.0.3600.jar' # 10.2
+  - 'sonar-html-plugin-3.11.0.4708.jar' # 10.3
+  - 'sonar-html-plugin-3.13.0.4821.jar' # 10.4
+  - 'sonar-html-plugin-3.15.0.5107.jar' # 10.5
+  - 'sonar-html-plugin-3.16.0.5274.jar' # 10.6
+  - 'sonar-html-plugin-3.17.0.5548.jar' # 24.12
+  - 'sonar-html-plugin-3.18.0.5605.jar' # 25.01
+  - 'sonar-html-plugin-3.19.0.5695.jar' # 25.03
+
+  - 'sonar-jacoco-plugin-1.0.1.143.jar'
+  - 'sonar-jacoco-plugin-1.0.2.475.jar'
+  - 'sonar-jacoco-plugin-1.1.0.898.jar'
+  - 'sonar-jacoco-plugin-1.1.1.1157.jar'
+  - 'sonar-jacoco-plugin-1.3.0.1538.jar'
+
+  - 'sonar-iac-plugin-1.4.0.1294.jar'
+  - 'sonar-iac-plugin-1.5.0.1600.jar'
+  - 'sonar-iac-plugin-1.7.0.2012.jar'
+  - 'sonar-iac-plugin-1.9.2.2279.jar'
+  - 'sonar-iac-plugin-1.11.0.2847.jar'
+  - 'sonar-iac-plugin-1.15.0.3752.jar'
+  - 'sonar-iac-plugin-1.17.0.3976.jar' # 10.1
+  - 'sonar-iac-plugin-1.20.0.5654.jar' # 10.2
+  - 'sonar-iac-plugin-1.22.0.7057.jar' # 10.3
+  - 'sonar-iac-plugin-1.26.0.8471.jar' # 10.4
+  - 'sonar-iac-plugin-1.27.0.9518.jar' # 10.5
+  - 'sonar-iac-plugin-1.31.0.10579.jar' # 10.6
+  - 'sonar-iac-plugin-1.36.0.12431.jar' # 10.7
+  - 'sonar-iac-plugin-1.39.0.13718.jar' # 24.12
+  - 'sonar-iac-plugin-1.40.0.13983.jar' # 25.01
+  - 'sonar-iac-plugin-1.41.0.14206.jar' # 25.02
+  - 'sonar-iac-plugin-1.43.0.14517.jar' # 25.03
+  - 'sonar-iac-plugin-1.44.0.14670.jar' # 25.04
+
+  - 'sonar-config-plugin-1.1.0.185.jar'
+  - 'sonar-config-plugin-1.2.0.267.jar'
+  - 'sonar-config-plugin-1.3.0.654.jar' # 10.2
+
+  - 'sonar-text-plugin-1.0.0.120.jar'
+  - 'sonar-text-plugin-1.1.0.282.jar'
+  - 'sonar-text-plugin-1.2.0.510.jar'
+  - 'sonar-text-plugin-2.0.1.611.jar'
+  - 'sonar-text-plugin-2.0.2.1090.jar'
+  - 'sonar-text-plugin-2.1.0.1163.jar' # 10.1
+  - 'sonar-text-plugin-2.3.0.1632.jar' # 10.2
+  - 'sonar-text-plugin-2.7.1.1388.jar' # 10.3
+  - 'sonar-text-plugin-2.8.0.1635.jar' # 10.4
+  - 'sonar-text-plugin-2.10.0.2188.jar' # 10.5
+  - 'sonar-text-plugin-2.12.1.2905.jar' # 10.6
+  - 'sonar-text-plugin-2.16.0.4008.jar' # 10.7
+  - 'sonar-text-plugin-2.19.0.4883.jar' # 24.12
+  - 'sonar-text-plugin-2.20.0.5038.jar' # 25.01
+  - 'sonar-text-plugin-2.21.0.5225.jar' # 25.03
+  - 'sonar-text-plugin-2.21.1.5779.jar' # 25.04
+
+  - 'sonar-csharp-plugin-7.15.0.8572.jar'
+  - 'sonar-csharp-plugin-8.22.0.31243.jar'
+  - 'sonar-csharp-plugin-8.25.0.33663.jar'
+  - 'sonar-csharp-plugin-8.29.0.36737.jar'
+  - 'sonar-csharp-plugin-8.32.0.39516.jar'
+  - 'sonar-csharp-plugin-8.34.0.42011.jar'
+  - 'sonar-csharp-plugin-8.36.1.44192.jar'
+  - 'sonar-csharp-plugin-8.40.0.48530.jar'
+  - 'sonar-csharp-plugin-8.43.0.51858.jar'
+  - 'sonar-csharp-plugin-8.46.0.54807.jar'
+  - 'sonar-csharp-plugin-8.50.0.58025.jar'
+  - 'sonar-csharp-plugin-8.51.0.59060.jar'
+  - 'sonar-csharp-plugin-8.55.0.65544.jar'
+  - 'sonar-csharp-plugin-9.3.0.71466.jar' # 10.1
+  - 'sonar-csharp-plugin-9.8.0.76515.jar' # 10.2
+  - 'sonar-csharp-plugin-9.13.0.79967.jar' # 10.3
+  - 'sonar-csharp-plugin-9.19.0.84025.jar' # 10.4
+  - 'sonar-csharp-plugin-9.23.2.88755.jar' # 10.5
+  - 'sonar-csharp-plugin-9.27.0.93347.jar' # 10.6
+  - 'sonar-csharp-plugin-9.32.0.97167.jar' # 10.7
+  - 'sonar-csharp-plugin-10.3.0.106239.jar' # 24.12
+  - 'sonar-csharp-plugin-10.4.0.108396.jar' # 25.01
+  - 'sonar-csharp-plugin-10.6.0.109712.jar' # 25.02
+  - 'sonar-csharp-plugin-10.7.0.110445.jar' # 25.03
+
+  - 'sonar-vbnet-plugin-7.15.0.8572.jar'
+  - 'sonar-vbnet-plugin-8.22.0.31243.jar'
+  - 'sonar-vbnet-plugin-8.25.0.33663.jar'
+  - 'sonar-vbnet-plugin-8.29.0.36737.jar'
+  - 'sonar-vbnet-plugin-8.32.0.39516.jar'
+  - 'sonar-vbnet-plugin-8.34.0.42011.jar'
+  - 'sonar-vbnet-plugin-8.36.1.44192.jar'
+  - 'sonar-vbnet-plugin-8.40.0.48530.jar'
+  - 'sonar-vbnet-plugin-8.43.0.51858.jar'
+  - 'sonar-vbnet-plugin-8.46.0.54807.jar'
+  - 'sonar-vbnet-plugin-8.50.0.58025.jar'
+  - 'sonar-vbnet-plugin-8.51.0.59060.jar'
+  - 'sonar-vbnet-plugin-8.55.0.65544.jar'
+  - 'sonar-vbnet-plugin-9.3.0.71466.jar' # 10.1
+  - 'sonar-vbnet-plugin-9.8.0.76515.jar' # 10.2
+  - 'sonar-vbnet-plugin-9.13.0.79967.jar' # 10.3
+  - 'sonar-vbnet-plugin-9.19.0.84025.jar' # 10.4
+  - 'sonar-vbnet-plugin-9.23.2.88755.jar' # 10.5
+  - 'sonar-vbnet-plugin-9.27.0.93347.jar' # 10.6
+  - 'sonar-vbnet-plugin-9.32.0.97167.jar' # 10.7
+  - 'sonar-vbnet-plugin-10.3.0.106239.jar' # 24.12
+  - 'sonar-vbnet-plugin-10.4.0.108396.jar' # 25.01
+  - 'sonar-vbnet-plugin-10.6.0.109712.jar' # 25.02
+  - 'sonar-vbnet-plugin-10.7.0.110445.jar' # 25.03
+
+  - 'sonar-cayc-plugin-2.0.0.334.jar' # 10.1
+  - 'sonar-cayc-plugin-2.1.0.500.jar' # 10.2
+  - 'sonar-cayc-plugin-2.2.2.656.jar' # 10.3
+  - 'sonar-cayc-plugin-2.3.0.1782.jar' # 10.4
+  - 'sonar-cayc-plugin-2.4.0.2018.jar' # 10.7
+
+  - 'sonar-flex-plugin-2.5.1.1831.jar' # 7.9
+  - 'sonar-flex-plugin-2.6.1.2564.jar' # 8.9
+  - 'sonar-flex-plugin-2.8.0.3166.jar' # 9.9
+  - 'sonar-flex-plugin-2.9.0.3375.jar' # 10.1
+  - 'sonar-flex-plugin-2.10.0.3458.jar' # 10.2
+  - 'sonar-flex-plugin-2.12.0.4568.jar' # 10.3
+  - 'sonar-flex-plugin-2.14.0.5032.jar' # 24.12
+
+# Override this var to exclude default plugins you don't need
+sonar_default_excluded_plugins: []
+
+sonar_all_excluded_plugins: "{{ sonar_update_default_plugins | ternary(sonar_excluded_plugins, []) + \
+                                sonar_default_excluded_plugins }}"
+
+# SonarQube configuration
+sonar_web_user: admin
+sonar_web_password: admin
+change_password: false
+sonar_web_old_password: admin
+
+sonar_migrate_db: false
+
+sonar_set_jenkins_webhook: false
+sonar_jenkins_webhook_name: jenkins
+sonar_jenkins_webhook_url: https://jenkins.example.com/sonarqube-webhook/
+
+sonar_restore_profiles: false
+sonar_profile_list:
+  - files/example_profile.xml
+
+sonar_updatecenter_activate: true
+
+# See https://docs.sonarqube.org/latest/instance-administration/delegated-auth/#header-6 to get description
+# ldap:
+#    authenticator_downcase: false
+#    url: ldap://myserver.mycompany.com
+#    bind_dn: my_bind_dn
+#    bind_password: my_bind_password
+#    authentication: simple
+#    realm:
+#    contextFactoryClass: com.sun.jndi.ldap.LdapCtxFactory
+#    StartTLS: false
+#    followReferrals: true
+#    user_base_dn: ou=Users,dc=mycompany,dc=com
+#    user_request: (&(objectClass=inetOrgPerson)(uid={login}))
+#    user_real_name_attribute: cn
+#    user_email_attribute: mail
+#    group_base_dn: ou=Groups,dc=sonarsource,dc=com
+#    group_request: (&(objectClass=posixGroup)(memberUid={uid}))
+#    group_idAttribute: cn
+
+sonar_log_path: "{% if sonar_version is version(\"9.6\", \">=\") %}\
+                   {{ sonar_installation }}/logs/sonar.log\
+                 {% elif sonar_version is version(\"8.7.0.41497\", \">=\") %}\
+                   {{ sonar_installation }}/logs/sonar.{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}.log\
+                 {% elif sonar_version is version(\"8.6.0.39681\", \">=\") %}\
+                   {{ sonar_installation }}/logs/sonar-{{ ansible_date_time.year }}{{ ansible_date_time.month }}{{ ansible_date_time.day }}.log\
+                 {% else %}\
+                   {{ sonar_installation }}/logs/sonar.log\
+                 {% endif %}"
+
+sonar_start_by_service: true

@@ -1,0 +1,4 @@
+tanium_rpm_el7: TaniumClient-7.4.10.1067-1.rhe7.x86_64.rpm 
+tanium_rpm_el8: TaniumClient-7.4.10.1067-1.rhe8.x86_64.rpm
+tanium_rpm_el9: TaniumClient-7.4.10.1067-1.rhe9.x86_64.rpm
+tanium_config: tanium-init.dat

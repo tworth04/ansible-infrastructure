@@ -1,0 +1,28 @@
+---
+- hosts: '{{target|default("all")}}'
+#  gather_facts: false 
+  ignore_errors: true
+  become: true
+#  serial: 50
+  tasks:
+  
+    - name: Delete content & directory
+      file:
+        state: absent
+        path: /webdata/W1/W1_Services/W1_PublicVW/ApplicationVW/UnderwritingVW/docucorp/
+        
+    - name: Ensure the directory /path/to/your/directory exists
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755' # Optional: set the permissions for the directory (e.g., rwxr-xr-x)
+        owner: runapi # Optional: set the owner of the directory
+        group: runapi # Optional: set the group of the directory
+      loop:
+        - /mnt/IPPS/FileInput
+        - /mnt/IPPS/FileArchive
+        - /mnt/pid
+        - /mnt/logs
+        - /mnt/config
+        - /mnt/app
+        - /mnt/script

@@ -1,0 +1,205 @@
+---
+# Cleanup temporary logical volumes before expansion
+
+- name: Find all temporary LVs across all volume groups
+  shell: |
+    lvs --noheadings -o vg_name,lv_name | awk '{gsub(/^[ \t]+|[ \t]+$/, "", $1); gsub(/^[ \t]+|[ \t]+$/, "", $2); if ($2 == "lv_tmp" || $2 == "lv_var_tmp") print $1":"$2}'
+  register: temp_lvs_found
+  changed_when: false
+  failed_when: false
+
+- name: Initialize removable_lvs list
+  set_fact:
+    removable_lvs: []
+
+- name: Build list of removable temporary LVs
+  set_fact:
+    removable_lvs: "{{ removable_lvs + [ {'vg': vg_lv.split(':')[0], 'lv': vg_lv.split(':')[1]} ] }}"
+  loop: "{{ temp_lvs_found.stdout_lines }}"
+  loop_control:
+    loop_var: vg_lv
+
+- name: Lazy unmount /tmp and /var/tmp if mounted
+  shell: |
+    for mnt in /tmp /var/tmp; do
+      if mountpoint -q "$mnt"; then
+        echo "Lazy unmounting $mnt"
+        umount -l "$mnt"
+      fi
+    done
+  register: lazy_unmount_result
+  changed_when: lazy_unmount_result.stdout != ""
+  ignore_errors: yes
+  tags: cleanup
+
+- name: Remove temporary LVs if they exist
+  lvol:
+    vg: "{{ item.vg }}"
+    lv: "{{ item.lv }}"
+    state: absent
+    force: true
+  loop: "{{ removable_lvs }}"
+  ignore_errors: yes
+  tags: cleanup
+
+- name: Remove any stale fstab entries for /tmp and /var/tmp
+  lineinfile:
+    path: /etc/fstab
+    state: absent
+    regexp: '^.*[ \t]+(/tmp|/var/tmp)[ \t]+.*$'
+  become: true
+  tags: cleanup
+
+# Expand VMware disk if needed
+
+- name: Set disk list fact
+  set_fact:
+    disk_list: "{{ vm_disks.guest_disk_info.disks | default([]) }}"
+
+- name: Calculate unit_number_guess for disk
+  set_fact:
+    unit_number_guess: "{{ (disk_to_grow | regex_replace('^sd','') | regex_replace('[^a-z]','') | length | int - 1) }}"
+  when: disk_to_grow is defined
+
+- name: Map VMware controller details or fallback
+  set_fact:
+    controller_number: "{{ (disk_list | selectattr('unit_number','equalto', unit_number_guess) | map(attribute='controller_number') | first) | default(0) }}"
+    controller_type: "{{ (disk_list | selectattr('unit_number','equalto', unit_number_guess) | map(attribute='controller_type') | first) | default('paravirtual') }}"
+  when: disk_to_grow is defined
+
+- name: Log disk expansion details
+  debug:
+    msg: >
+      Expanding disk '{{ disk_to_grow }}' on VM '{{ inventory_hostname }}':
+      - Current size: {{ current_disk_size }} GB
+      - Expansion size: {{ expansion_size_gb }} GB
+      - New size: {{ current_disk_size | int + expansion_size_gb }} GB
+      - Controller: {{ controller_type }} #{{ controller_number }}
+  when: disk_to_grow is defined
+
+- name: Increase VM disk size in vSphere
+  community.vmware.vmware_guest_disk:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: false
+    datacenter: "{{ vcenter_datacenter }}"
+    name: "{{ inventory_hostname }}"
+    disk:
+      - unit_number: "{{ unit_number_guess }}"
+        size_gb: "{{ current_disk_size | int + expansion_size_gb }}"
+        controller_number: "{{ controller_number }}"
+        controller_type: "{{ controller_type }}"
+  delegate_to: localhost
+  register: disk_extension_status
+  when: disk_to_grow is defined
+
+- name: Log disk extension status
+  debug:
+    var: disk_extension_status
+  when: disk_to_grow is defined
+
+- name: Rescan SCSI bus
+  shell: "rescan-scsi-bus.sh -s" 
+  args:
+    executable: /bin/bash
+  when: disk_extension_status.changed
+
+- name: Refresh hardware facts after disk resize
+  setup:
+    gather_subset:
+      - hardware
+  when: disk_extension_status.changed
+
+# Identify volume groups that need expansion
+
+- name: Filter volume groups needing expansion
+  set_fact:
+    vgs_needing_expansion: >-
+      {{
+        ansible_lvm.vgs
+        | dict2items
+        | selectattr('value.free_g', 'defined')
+        | selectattr('value.free_g', 'float')
+        | select('lt', expansion_threshold_gb)
+        | list
+      }}
+
+- name: Map volume groups to their physical volumes
+  set_fact:
+    vg_pv_map: >-
+      {{
+        dict(
+          ansible_lvm.pvs
+          | dict2items
+          | groupby('value.vg')
+          | map('first')
+          | zip(
+              ansible_lvm.pvs
+              | dict2items
+              | groupby('value.vg')
+              | map('last')
+            )
+        )
+      }}
+
+- name: Build list of VG-PV pairs needing expansion
+  set_fact:
+    vg_pv_pairs: >-
+      {{
+        vgs_needing_expansion
+        | map(attribute='key')
+        | map('extract', vg_pv_map)
+        | map('first')
+        | zip(vgs_needing_expansion | map(attribute='key'))
+        | map('reverse')
+        | list
+      }}
+
+- name: Debug volume groups needing expansion
+  debug:
+    var: vgs_needing_expansion
+
+- name: Debug VG-PV map
+  debug:
+    var: vg_pv_map
+
+- name: Debug VG-PV pairs
+  debug:
+    var: vg_pv_pairs
+
+- name: Loop through VG-PV pairs and expand each
+  include_tasks: expand_single_vg.yml
+  loop: "{{ vg_pv_pairs }}"
+  loop_control:
+    label: "{{ item.0 }}"
+  when: vg_pv_pairs | length > 0
+  vars:
+    selected_vg: "{{ item.0 }}"
+    selected_pv: "{{ item.1 }}"
+
+# Create tmp volumes in the VG with most free space
+
+- name: Select VG with most free space for tmp volumes
+  set_fact:
+    selected_vg: >-
+      {{
+        ansible_lvm.vgs
+        | dict2items
+        | sort(attribute='value.free_g', reverse=True)
+        | map(attribute='key')
+        | first
+      }}
+
+- name: Define tmp mount points
+  set_fact:
+    tmp_mounts:
+      - { lv_name: "tmp", mount_point: "/tmp" }
+      - { lv_name: "var_tmp", mount_point: "/var/tmp" }
+
+- name: Ensure /tmp and /var/tmp LVs exist and are mounted
+  include_tasks: manage_tmp_lvs_block.yml
+  loop: "{{ tmp_mounts }}"
+  loop_control:
+    loop_var: tmp_item
+    label: "{{ tmp_item.mount_point }}"

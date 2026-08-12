@@ -1,0 +1,41 @@
+---
+# Define environment-specific details
+environments:
+  prd:
+    host: vc01006.example.com
+    datacenter: Example DC
+    cluster: Prod Linux App Services EVC
+    folder: Production Linux/
+    datastore: PURE_ESXI_Prod_LinuxApp_DS25
+
+
+  dev:
+    host: vcenter-prod.example.com
+    datacenter: Example Dev
+    cluster: Lower Env Linux App Services
+    folder: "All Virtual Machines/Linux/dev"
+    datastore: PURE_ESXi_Lower_LinuxAppx_DS08
+    network_settings:
+
+# Define common variables
+#vsphere_hostname: "vcenter.example.com"
+vsphere_username: "svc_ansible"
+vsphere_password: "{{ vault_vsphere_password }}"
+template_name: "rocky-95-minimal"
+
+dev_network:
+  - ip: '10.0.0.1/24'
+    gateway: '10.0.0.1'
+    vlan: 'dvPG-SitLinuxServers-443'
+uat_network:
+  - ip: '10.0.0.1/24'
+    gateway: '10.0.0.1'
+    vlan: 'dvPG-UATLinuxServers-423'
+prod_network:      
+  - ip: '10.0.0.1/24'
+    gateway: '10.0.0.1'
+    vlan: 'dvPG-Linux-Services-413'
+sit_network:
+  - ip: '10.0.0.1/24'
+    gateway: '10.0.0.1'
+    vlan: 'dvPG-SitLinuxServers-433'

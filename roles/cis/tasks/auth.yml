@@ -1,0 +1,9 @@
+---
+
+- name: ensure winbind is running 
+  include_tasks: winbind.yml
+  when: ansible_facts.services['winbind.service'].state == 'running'
+
+- name: ensure sssd is running
+  include_tasks: sssd.yml
+  when: ansible_facts.services['sssd.service'].state == 'running'

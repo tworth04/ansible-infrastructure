@@ -1,0 +1,144 @@
+---
+
+- name: Copy and import mysql dump file
+  hosts: sit-mys-all
+  become: yes
+
+  tasks:
+
+
+    - name: DELETE MYSQL dnf packages
+      shell: dnf remove mariadb mariadb-server -y
+
+    - name: Add MYSQL dnf packages
+      shell: dnf install mariadb mariadb-server -y
+
+    - name: Start mysqld
+      shell: systemctl start mariadb
+
+    - name: Enable msyqld
+      shell: systemctl enable mariadb
+
+    - name: Create databases
+      shell: mysql -u root -e "CREATE DATABASE environment_config; CREATE DATABASE fax_forms; CREATE DATABASE rules; CREATE DATABASE w1_system; CREATE DATABASE zf2_system; CREATE DATABASE advertisements; CREATE DATABASE cms; CREATE DATABASE csr; CREATE DATABASE dynamic_content; CREATE DATABASE eDoc_system; CREATE DATABASE log_tracker; CREATE DATABASE runtime_stats; CREATE DATABASE security; CREATE DATABASE translation;"
+
+
+    - name: Copy environment_config file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/environment_config.sql
+        dest: /tmp/environment_config.sql
+        mode: 0644
+    - name: Import environment_config File
+      shell: "mysql -u root environment_config < /tmp/environment_config.sql"
+
+    - name: Copy fax_forms file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/fax_forms.sql
+        dest: /tmp/fax_forms.sql
+        mode: 0644
+    - name: Import fax_forms File
+      shell: "mysql -u root fax_forms < /tmp/fax_forms.sql"
+
+    - name: Copy rules file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/rules.sql
+        dest: /tmp/rules.sql
+        mode: 0644
+    - name: Import rules File
+      shell: "mysql -u root rules < /tmp/rules.sql"
+
+    - name: Copy w1_system file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/w1_system.sql
+        dest: /tmp/w1_system.sql
+        mode: 0644
+    - name: Import w1_system File
+      shell: "mysql -u root w1_system < /tmp/w1_system.sql"
+
+    - name: Copy zf2_system file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/zf2_system.sql
+        dest: /tmp/zf2_system.sql
+        mode: 0644
+    - name: Import zf2_system File
+      shell: "mysql -u root zf2_system < /tmp/zf2_system.sql"
+
+    - name: Copy advertisements file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/advertisements.sql
+        dest: /tmp/advertisements.sql
+        mode: 0644
+    - name: Import advertisements File
+      shell: "mysql -u root advertisements < /tmp/advertisements.sql"
+
+    - name: Copy cms file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/cms.sql
+        dest: /tmp/cms.sql
+        mode: 0644
+    - name: Import cms File
+      shell: "mysql -u root cms < /tmp/cms.sql"
+
+    - name: Copy csr file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/csr.sql
+        dest: /tmp/csr.sql
+        mode: 0644
+    - name: Import csr File
+      shell: "mysql -u root csr < /tmp/csr.sql"
+
+    - name: Copy dynamic_content file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/dynamic_content.sql
+        dest: /tmp/dynamic_content.sql
+        mode: 0644
+    - name: Import dynamic_content File
+      shell: "mysql -u root dynamic_content < /tmp/dynamic_content.sql"
+
+    - name: Copy eDoc_system file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/eDoc_system.sql
+        dest: /tmp/eDoc_system.sql
+        mode: 0644
+    - name: Import eDoc_system File
+      shell: "mysql -u root eDoc_system < /tmp/eDoc_system.sql"
+
+    - name: Copy log_tracker file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/log_tracker.sql
+        dest: /tmp/log_tracker.sql
+        mode: 0644
+    - name: Import log_tracker File
+      shell: "mysql -u root log_tracker < /tmp/log_tracker.sql"
+
+    - name: Copy runtime_stats file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/runtime_stats.sql
+        dest: /tmp/runtime_stats.sql
+        mode: 0644
+    - name: Import runtime_stats File
+      shell: "mysql -u root runtime_stats < /tmp/runtime_stats.sql"
+
+    - name: Copy security file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/security.sql
+        dest: /tmp/security.sql
+        mode: 0644
+    - name: Import security File
+      shell: "mysql -u root security < /tmp/security.sql"
+
+    - name: Copy translation file
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/translation.sql
+        dest: /tmp/translation.sql
+        mode: 0644
+    - name: Import translation File
+      shell: "mysql -u root translation < /tmp/translation.sql"
+
+    - name: Copy adduser.sql
+      copy:
+        src: /home/svc_ansible/automation/files/mysql_slp/dev/int/adduser.sql
+        dest: /tmp/adduser.sql
+        mode: 0644
+    - name: Create Users/Rights
+      shell: mysql -u root < /tmp/adduser.sql

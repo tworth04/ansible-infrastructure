@@ -1,0 +1,55 @@
+plugin: ansible.builtin.constructed
+strict: False
+compose:
+    var_sum: var1 + var2
+
+    # this variable will only be set if I have a persistent fact cache enabled (and have non expired facts)
+    # `strict: False` will skip this instead of producing an error if it is missing facts.
+    #hostname: "ansible_hostname | regex_replace ('(.{6})(.{2}).*', '\\2')"
+    hostname: "ansible_hostname"
+groups:
+#    # simple name matching
+#    Redhat: "'Red' in ansible_distribution_file_variety"
+#    Rocky: "'Rocky' in ansible_distribution"
+
+    # using other host properties populated in inventory
+#    private_only: not (public_dns_name is defined or ip_address is defined)
+
+    # complex group membership
+#     multi_group: (group_names | intersect(['alpha', 'beta', 'omega'])) | length >= 2
+
+keyed_groups:
+    # this creates a group per distro (distro_CentOS, distro_Debian) and assigns the hosts that have matching values to it,
+    # using the default separator "_"
+    - prefix: Distro
+      key: ansible_distribution
+
+    - prefix: Version
+      key: ansible_distribution_version
+
+    - prefix: Major
+      key: ansible_distribution_major_version
+
+    - key: ansible_os_family == 'RedHat'
+      parent_group: Redhat
+
+    - key: ansible_distribution == 'Rocky'
+      parent_group: Rocky
+
+    - key: ansible_hostname == 'uat*'
+      parent_group: uat
+
+    - key: ansible_hostname == 'dev*'
+      parent_group: dev
+
+    - key: ansible_hostname == 'sit*'
+      parent_group: sit
+
+    - key: ansible_hostname == 'qua*'
+      parent_group: qua
+
+
+    # the following examples assume the first inventory is from the `aws_ec2` plugin
+    # this creates a group per ec2 architecture and assign hosts to the matching ones (arch_x86_64, arch_sparc, etc)
+#    - prefix: arch
+#      key: architecture

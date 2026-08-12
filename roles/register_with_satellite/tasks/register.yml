@@ -1,0 +1,25 @@
+---
+
+- name: Send Katello to /tmp on "{{ ansible_hostname }}"
+  copy:
+    src: "{{ katello_rpm }}"
+    dest: /tmp/{{ katello_rpm }}
+
+- name: Install katello cert
+  yum:
+    name: /tmp/{{ katello_rpm }}
+    state: present
+    disable_gpg_check: true
+
+#- name: Clean Yum/RHSM
+#  command: subscription-manager unregister
+
+- name: Register with Example Satellite Server 'RHEL'
+  command: 'subscription-manager register --org="Exampleservices" --activationkey="admin" --force'
+  async: 20
+  when: ansible_facts['distribution'] == "RedHat"
+
+- name: Register with Example Satellite Server 'Rocky'
+  command: 'subscription-manager register --org="Exampleservices" --activationkey="Rocky" --force'
+  async: 20
+  when: ansible_facts['distribution'] == "Rocky"

@@ -1,0 +1,8 @@
+---
+
+- name: Disable SELinux
+  ansible.posix.selinux:
+    state: permissive
+
+- name: disable selinux via setenforce
+  command: setenforce 0

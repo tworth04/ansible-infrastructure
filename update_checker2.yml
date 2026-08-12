@@ -1,0 +1,24 @@
+---
+- hosts: all 
+  connection: local
+#  gather_facts: false 
+  ignore_errors: true
+  become: true
+#  serial: 50
+  tasks:
+
+    - name: Send Email if updates are available or if there's an error
+      community.general.mail:
+        host: smtprelay.example.com
+        port: 25
+        timeout: 30
+#        subtype: html
+#        from: Travis Worth <travis.worth@example.com>
+        to: Steven Example <steven.example@example.com>
+        cc: Travis Worth <travis.worth@example.com>
+        subject: Yum Update Status
+        body: The Following Servers Have Pending updates "{{ lookup('file', '/tmp/reboot_list.txt') }}" 
+#        body: See attached file for pending servers needing updates.
+#        attach: /tmp/reboot_list.txt
+      delegate_to: localhost
+      run_once: true

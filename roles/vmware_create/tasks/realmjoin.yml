@@ -1,0 +1,14 @@
+---
+- name: Run cleanup scripts
+  hosts: sit-mys-all
+  gather_facts: false
+
+  tasks:
+    - name: execute runonce from download
+      become: yes
+      shell: wget -O - http://dev-adm-jmp01.example.com/automation/ro9_runonce.sh | bash
+      register: command_output
+
+    - name: Give output
+      debug:
+        var: command_output.stdout

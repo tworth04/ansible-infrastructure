@@ -1,0 +1,70 @@
+---
+
+- name: Stop previously running Splunk service
+  ansible.builtin.systemd_service:
+    name: splunkd
+    state: stopped
+    enabled: true
+    force: true
+
+- name: Ensure no lingering Connections
+  command: 'pgrep -f splunk|xargs kill -9'
+
+- name: Send Spunk to /tmp on "{{ ansible_hostname }}"
+  copy:
+    src: "{{ splunk_rpm }}"
+    dest: /tmp/{{ splunk_rpm }}
+
+- name: Create directory structure if not present
+  file:
+    path: "{{ splunk_home }}"
+    state: directory
+    mode: '0755'
+    owner: splunkfwd
+    group: splunkfwd
+
+- name: Copy Systemd service file
+  copy:
+    src: "{{ splunk_service }}"
+    dest: /etc/systemd/system/splunkd.service
+
+- name: Install Splunk 
+  yum:
+    name: /tmp/{{ splunk_rpm }}
+    state: present
+    disable_gpg_check: true
+  async: 60
+  poll: 5
+
+- name: Create Systemd service
+  copy:
+    src: files/splunkd.service
+    dest: /etc/systemd/system/splunkd.service
+
+- name: Enable Splunk service 
+  ansible.builtin.systemd_service:
+    name: splunkd
+    state: started
+    enabled: true
+    force: true
+#    daemon_reload: true
+
+- name: Pause for 10 seconds to let application builds needed files and directories
+  ansible.builtin.pause:
+    seconds: 10
+
+- name: Enable Splunk service
+  ansible.builtin.systemd_service:
+    name: splunkd
+    state: stopped
+    enabled: true
+    force: true
+      
+- include_tasks: config.yml
+
+- name: Restart Splunk service
+  ansible.builtin.systemd_service:
+    name: splunkd
+    state: restarted
+    force: true
+

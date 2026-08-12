@@ -1,0 +1,22 @@
+Compliance Audit Report
+========================
+
+{% if combined_results | length > 0 %}
+{% for host, summary in combined_results.items() %}
+Host: {{ host }}
+  Mismatches:
+    {% if summary.mismatches | default([]) | length > 0 %}
+      {{ summary.mismatches | join(', ') }}
+    {% else %}
+      None
+    {% endif %}
+  Permissions Issues:
+    {% if summary.permissions | default([]) | length > 0 %}
+      {{ summary.permissions | join(', ') }}
+    {% else %}
+      None
+    {% endif %}
+{% endfor %}
+{% else %}
+All targeted hosts are compliant. No mismatches or permission issues found.
+{% endif %}

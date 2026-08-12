@@ -1,0 +1,11 @@
+---
+
+- name: start firewalld
+  systemd_service:
+    name: firewalld
+    state: stopped
+    enabled: false
+    masked: no
+
+#- name: Enable Firewall
+#  command: firewall-cmd --permanent --zone=public --set-target=ACCEPT

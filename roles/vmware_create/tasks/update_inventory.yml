@@ -1,0 +1,8 @@
+---
+
+- name: Update Lower Dev Dyanmic Inventory
+  command: "screen -mdSA dev_inventory_update bash -c 'ansible-inventory  -i inventory/dev/vc003.vmware.yml --graph'"
+
+- name: Update Lower Dev Dyanmic Inventory
+  command: "screen -mdSA prod_inventory_update bash -c 'ansible-inventory  -i inventory/prod/vcenter-prod.vmware.yml --graph'"
+

@@ -1,0 +1,11 @@
+---
+- name: install needed packages
+  yum: 
+    name: yum-utils
+- name: install security patches with yum
+  yum:
+    name: '*'
+    state: latest
+    update_cache: true
+    security: true
+...

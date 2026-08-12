@@ -1,0 +1,77 @@
+---
+# Pre-task: CIS Audit (only runs when explicitly tagged)
+- name: CIS Audit - Gather role files
+  tags: [never, cis_audit]
+  ansible.builtin.set_fact:
+    role_files: "{{ lookup('fileglob', role_path + '/files/*', wantlist=True) }}"
+
+- name: CIS Audit - Build src/dest mapping
+  tags: [never, cis_audit]
+  ansible.builtin.set_fact:
+    file_map: |
+      {% for f in role_files %}
+      - { src: "{{ f | basename }}", dest: "/etc/{{ f | basename }}" }
+      {% endfor %}
+
+- name: CIS Audit - Get checksum of role files
+  tags: [never, cis_audit]
+  ansible.builtin.stat:
+    path: "{{ role_path }}/files/{{ item.src }}"
+    checksum_algorithm: sha256
+  register: role_file_checksum
+  loop: "{{ file_map }}"
+
+- name: CIS Audit - Get checksum of destination files
+  tags: [never, cis_audit]
+  ansible.builtin.stat:
+    path: "{{ item.dest }}"
+    checksum_algorithm: sha256
+  register: dest_file_checksum
+  loop: "{{ file_map }}"
+
+- name: CIS Audit - Calculate mismatch count
+  tags: [never, cis_audit]
+  ansible.builtin.set_fact:
+    mismatch_count: "{{ mismatch_count | default(0) + (
+      1 if (dest_file_checksum.results[i].stat.exists and
+            dest_file_checksum.results[i].stat.checksum != role_file_checksum.results[i].stat.checksum)
+      else 0)
+    }}"
+  loop: "{{ range(file_map|length)|list }}"
+  loop_control:
+    index_var: i
+
+- name: CIS Audit - Save audit summary locally
+  tags: [never, cis_audit]
+  ansible.builtin.copy:
+    content: "{{ inventory_hostname }}: {{ mismatch_count }} mismatches"
+    dest: "/tmp/cis_audit_summary.txt"
+    mode: '0644'
+  delegate_to: localhost
+  run_once: false
+
+- name: CIS Audit - Aggregate summaries
+  tags: [never, cis_audit]
+  ansible.builtin.shell: "cat /tmp/cis_audit_summary.txt"
+  register: all_summaries
+  delegate_to: localhost
+  run_once: true
+
+- name: CIS Audit - Sort and pick top offenders
+  tags: [never, cis_audit]
+  ansible.builtin.set_fact:
+    top_offenders: "{{ all_summaries.stdout_lines | sort(attribute='split(\":\")[1]|int', reverse=True) | slice(10) }}"
+
+- name: CIS Audit - Email report
+  tags: [never, cis_audit]
+  ansible.builtin.mail:
+    host: smtp.yourcompany.com
+    port: 25
+    to: "you@yourcompany.com"
+    subject: "CIS Audit Report - Top Offenders"
+    body: |
+      Top 10 Servers with Most File Mismatches:
+      =========================================
+      {% for line in top_offenders %}
+      {{ line }}
+      {% endfor %}

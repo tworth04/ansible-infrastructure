@@ -1,0 +1,160 @@
+---
+- name: Gather package info
+  service_facts:
+
+- name: Check if Zabbix is installed
+  stat:
+    path: /etc/zabbix
+  register: register_zabbix
+
+- name: Install the correct zabbix agent2 for RHEL
+  import_tasks: install.yml
+#  when: not register_zabbix.stat.exists
+
+#- name: update zabbix-agent
+#  command: yum update zabbix-agent2 --nogpgcheck 
+#  command: yum-config-manager --enable Exampleservices_Zabbix_zabbix7_rhel_{{ ansible_distribution_major_version }} 
+#  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] != "9"
+#
+#- name: update zabbix-agent
+#  command: yum update zabbix-agent2 --nogpgcheck
+#  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] != "9"
+
+#- name: Install the latest version of Zabbix Agent
+#  ansible.builtin.yum:
+#    name: zabbix-agent2
+#    enablerepo: Exampleservices_Zabbix_zabbix7_rhel_{{ ansible_distribution_major_version }}
+#    state: latest
+#    disable_gpg_check: true
+#  async: 20
+#  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] != "9"
+
+- name: Copy zabbix-agent.conf
+  ansible.builtin.template:
+    src: "{{ zabbix_agent2_config }}"
+    dest: /etc/zabbix/zabbix_agent2.conf
+    force: true
+
+- name: Check if mysql is installed
+  stat:
+    path: /var/lib/mysql
+    #path: /usr/lib/systemd/system/mysqld.service
+  register: register_mysql
+
+- name: Register variable
+  import_tasks: mysql.yml
+  when: register_mysql.stat.exists
+
+#- name: Append server type information in config file
+#  ansible.builtin.lineinfile:
+#    path: /etc/zabbix/zabbix_agent2.conf
+#    search_string: 'HostMetadata=Linux'
+#    line: HostMetadata=Linux
+#    owner: zabbix
+#    group: zabbix
+#    mode: '0644'
+
+- name: Append server type information in config file
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    search_string: 'HostMetadata=Linux'
+    line: HostMetadata=Linux Redis
+    owner: zabbix
+    group: zabbix
+    mode: '0644'
+  when: ansible_facts.services['redis.service'].state == 'inactive' or ansible_facts.services['redis.service'].state == 'running'
+
+- name: Append server type information in config file
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    search_string: 'HostMetadata=Linux'
+    line: HostMetadata=Linux Mysql
+    owner: zabbix
+    group: zabbix
+    mode: '0644'
+  when: ansible_facts.services['mariadb.service'].state == 'running'
+
+- name: Append server type information in config file
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_agent2.conf
+    search_string: 'HostMetadata=Linux'
+    line: HostMetadata=Linux HTTPD
+    owner: zabbix
+    group: zabbix
+    mode: '0644'
+  when: ansible_facts.services['httpd.service'].state == 'running'
+
+#- name: Insert/Update php-fpm configuration
+#  ansible.builtin.blockinfile:
+#    path: /etc/php-fpm.d/www.conf
+#    block: |
+#      pm.status_path = /status
+#      ping.path = /ping 
+#  when: ansible_facts.services['httpd.service'].state == 'running'
+
+- name: Remove Block
+  blockinfile:
+    path: /etc/php-fpm.d/www.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK "
+    block: ""
+#- name: Insert/Update php-fpm configuration
+#  ansible.builtin.blockinfile:
+#    path: /etc/php-fpm.d/www.conf
+#    block: |
+#      <LocationMatch "/status">
+#      Require ip 127.0.0.1
+#      # Require ip 1.2.3.4    # Your IP here
+#      # Adjust the path to the socket if needed
+#      ProxyPass "unix:/run/php-fpm/www.sock|fcgi://localhost/status"
+#      </LocationMatch>
+#
+#      <LocationMatch "/ping">
+#      Require ip 127.0.0.1
+#      # Require ip 1.2.3.4    # Your IP here
+#      # Adjust the path to the socket if needed
+#      ProxyPass "unix:/run/php-fpm/www.sock|fcgi://localhost/ping"
+#      </LocationMatch>
+#
+#      <Location "/server-status">
+#      SetHandler server-status
+#      </Location>
+#  when: ansible_facts.services['httpd.service'].state == 'running'
+
+
+- name: Install zabbix user to monitor mysql
+  import_tasks: mysql.yml
+  when: register_mysql.stat.exists
+
+#- name: Disable Firewalld
+#  systemd_service:
+#    name: firewalld
+#    state: stopped
+#    enabled: false
+#    force: true
+
+
+- name: Replace a localhost entry searching for a literal string to avoid escaping
+  ansible.builtin.lineinfile:
+    path: /usr/lib/systemd/system/zabbix-agent2.service
+    search_string: 'User=zabbix'
+    line: User=root
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Replace a localhost entry searching for a literal string to avoid escaping
+  ansible.builtin.lineinfile:
+    path: /usr/lib/systemd/system/zabbix-agent2.service
+    search_string: 'Group=zabbix'
+    line: Group=root
+    owner: root
+    group: root
+    mode: '0644'
+
+
+- name: Restart Zabbix Agent
+  systemd_service:
+    name: zabbix-agent2
+    state: restarted
+    enabled: true
+    force: true

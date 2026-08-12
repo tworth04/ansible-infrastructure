@@ -1,0 +1,23 @@
+---
+- name: Install MariaDB
+  yum:
+    name: "{{ mariadb_rocky }}"
+    state: latest
+
+#- name: mysql root password
+#  mysql_user:
+#    login_user: root
+#    login_password: "{{ mysql_root_password }}"
+#    name: root
+#    check_implicit_admin: true
+#    password: "{{ mysql_root_password }}"
+#    host: localhost
+
+#- name: remove remote root
+#  mysql_user:
+#    check_implicit_admin: true
+#    login_user: root
+#    login_password: "{{ mysql_root_password }}"
+#    name: root
+#    host: "{{ ansible_fqdn }}"
+#    state: absent

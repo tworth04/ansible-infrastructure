@@ -1,0 +1,32 @@
+---
+- import_tasks: base_files.yml
+#- import_tasks: partitions_dev_shm.yml
+#- import_tasks: update_fstab_vartmp.yml 
+#- import_tasks: rsyslog.yml
+#  when: ansible_facts['distribution_version'] >= "8"
+#- import_tasks: pamd.yml 
+#- import_tasks: prelim.yml 
+#  when: ansible_facts['distribution_version'] >= "8"
+#- import_tasks: parse_etc_password.yml 
+##- import_tasks: auth.yml 
+#  when: ansible_facts['distribution_version'] >= "8"
+#- import_tasks: bash.yml
+#- import_tasks: chrony.yml 
+#- import_tasks: sysctl.yml
+#  when: 
+#- import_tasks: tmout.yml
+#- import_tasks: coredump.yml 
+#- import_tasks: sshd.yml
+#  when: ansible_facts['distribution_version'] >= "8" 
+
+#- import_tasks: cron.yml
+#- import_tasks: logrotate.yml
+#- import_tasks: log_perms.yml
+#- import_tasks: journald.yml
+#- import_tasks: firewall.yml 
+#
+#- name: restart sshd
+#  systemd_service:
+#    name: sshd
+#    state: restarted
+

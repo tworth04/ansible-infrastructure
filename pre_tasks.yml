@@ -1,0 +1,80 @@
+---
+# CIS Audit Pre-Tasks (only runs when --tags cis_audit is specified)
+
+# 0. Clear old summary file (only once)
+- name: CIS Audit - Clear old summary file
+  tags: [never, cis_audit]
+  ansible.builtin.file:
+    path: "/tmp/cis_audit_summary.txt"
+    state: absent
+  delegate_to: localhost
+  run_once: true
+
+# 1. Load tasks from base_files.yml
+- name: CIS Audit - Load base_files.yml content
+  tags: [never, cis_audit]
+  ansible.builtin.set_fact:
+    base_file_tasks: "{{ lookup('file', '/etc/ansible/roles/cis/tasks/base_files.yml') | from_yaml_all | list }}"
+
+# 2. Extract file_map from any task with 'loop'
+- name: CIS Audit - Extract file_map
+  tags: [never, cis_audit]
+  ansible.builtin.set_fact:
+    file_map: "{{ base_file_tasks | selectattr('loop', 'defined') | map(attribute='loop') | flatten }}"
+
+# 3. Get checksum of role files
+- name: CIS Audit - Get checksum of role files
+  tags: [never, cis_audit]
+  ansible.builtin.stat:
+    path: "/etc/ansible/roles/cis/{{ item.src }}"
+    checksum_algorithm: sha256
+  register: role_file_checksum
+  loop: "{{ file_map }}"
+
+# 4. Get checksum of destination files
+- name: CIS Audit - Get checksum of destination files
+  tags: [never, cis_audit]
+  ansible.builtin.stat:
+    path: "{{ item.dest }}"
+    checksum_algorithm: sha256
+  register: dest_file_checksum
+  loop: "{{ file_map }}"
+
+# 5. Initialize counters and lists
+- name: CIS Audit - Initialize mismatch_count and update_list
+  tags: [never, cis_audit]
+  ansible.builtin.set_fact:
+    mismatch_count: 0
+    update_list: []
+
+# 6. Calculate mismatches and collect files needing update
+- name: CIS Audit - Check files for differences
+  tags: [never, cis_audit]
+  ansible.builtin.set_fact:
+    mismatch_count: "{{ mismatch_count | int + (
+      1 if (role_file_checksum.results[i].stat.exists and
+            (not dest_file_checksum.results[i].stat.exists or
+             dest_file_checksum.results[i].stat.checksum != role_file_checksum.results[i].stat.checksum))
+      else 0) }}"
+    update_list: "{{ update_list + [
+      item.dest ~ ' (' ~ (
+        'MISSING' if not dest_file_checksum.results[i].stat.exists
+        else 'DIFFERENT'
+      ) ~ ')'
+    ] if (role_file_checksum.results[i].stat.exists and
+           (not dest_file_checksum.results[i].stat.exists or
+            dest_file_checksum.results[i].stat.checksum != role_file_checksum.results[i].stat.checksum))
+    else update_list }}"
+  loop: "{{ file_map }}"
+  loop_control:
+    index_var: i
+
+# 7. Save audit summary locally
+- name: CIS Audit - Save audit summary locally
+  tags: [never, cis_audit]
+  ansible.builtin.copy:
+    dest: "/tmp/cis_audit_summary.txt"
+    content: "{{ inventory_hostname }}: {{ mismatch_count }} mismatches | Files: {{ update_list | join(', ') if update_list | length > 0 else 'None' }}\n"
+    mode: '0644'
+  delegate_to: localhost
+  run_once: false

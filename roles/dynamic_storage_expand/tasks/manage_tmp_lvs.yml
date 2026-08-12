@@ -1,0 +1,16 @@
+- name: Define tmp mount points
+  set_fact:
+    tmp_mounts:
+      - { lv_name: "tmp", mount_point: "/tmp" }
+      - { lv_name: "var_tmp", mount_point: "/var/tmp" }
+
+- name: Ensure /tmp and /var/tmp LVs exist and are mounted
+  include_tasks: manage_tmp_lvs_block.yml
+  loop: "{{ tmp_mounts }}"
+  loop_control:
+    loop_var: tmp_item
+    label: "{{ tmp_item.mount_point }}"
+  vars:
+    lv_name: "{{ tmp_item.lv_name }}"
+    mount_point: "{{ tmp_item.mount_point }}"
+    target_vg: "{{ selected_vg }}"

@@ -1,0 +1,30 @@
+---
+#- hosts: '{{target|default("Linux")}}'
+- hosts: Distro_Linux*,Distro_Red* 
+  gather_facts: False
+  become: true
+#  serial: 50
+  tasks:
+
+    - name: Gather the package facts
+      ansible.builtin.package_facts:
+        manager: auto
+      async: 20
+      poll: 5
+#      when: 
+#        - ansible_facts['distribution'] == "RedHat"
+
+#    - name: Print the package facts
+#      ansible.builtin.debug:
+#        var: ansible_facts.packages
+
+    - name: Check whether a package called cortex-agent is installed
+      ansible.builtin.debug:
+        msg: "Coretex is installed on {{ ansible_fqdn }} !"
+      when: "'cortex-agent' in ansible_facts.packages"
+
+#    - name: output results
+#      copy:
+#        content: "{{ansible_facts.packages}}"
+#        dest: /etc/ansible/cortex_results.txt
+#      delegate_to: localhost

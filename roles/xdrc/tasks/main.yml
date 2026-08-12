@@ -1,0 +1,37 @@
+---
+
+- name: Send Collector to /tmp on "{{ ansible_hostname }}"
+  copy:
+    src: "{{ collector_rpm }}"
+    dest: /tmp/{{ collector_rpm }}
+
+- name: Create directory structure if not present
+  file:
+    path: /etc/panw
+    state: directory
+    mode: '0755'
+
+- name: Copy Conf file to /etc/panw
+  copy:
+    src: "{{ collector_config }}"
+    dest: /etc/panw/collector.conf
+
+#- name: Install package foo
+#  command: rpm -i /tmp/{{ collector_rpm }}
+
+- name: Install Collector 
+  command: rpm -i /tmp/{{ collector_rpm }}
+#  yum:
+#    name: /tmp/{{ collector_rpm }}
+#    state: present
+#    disable_gpg_check: true
+  async: 60
+  poll: 5
+
+#- name: restart traps service 
+#  ansible.builtin.systemd_service:
+#    name: traps_pmd
+#    state: restarted
+#    enabled: true
+     
+

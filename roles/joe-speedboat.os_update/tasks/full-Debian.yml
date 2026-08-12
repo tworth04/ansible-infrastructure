@@ -1,0 +1,20 @@
+---
+- name: Update cache
+  apt: 
+    update_cache: true
+  changed_when: false
+
+- name: Full OS Upgrade
+  shell: |
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get dist-upgrade --force-yes -y
+  register: update_cmd
+  changed_when: false
+
+- name: check and report if updates got installed
+  debug: 
+    msg: updates got installed
+  changed_when: true
+  when: update_cmd.stdout.find('0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded') == -1
+...

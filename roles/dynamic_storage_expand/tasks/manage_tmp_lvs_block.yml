@@ -1,0 +1,86 @@
+---
+- name: Check if LV exists
+  command: "lvs --noheadings -o lv_name {{ tmp_item.lv_name }}"
+  register: lv_check
+  failed_when: false
+  changed_when: false
+
+- name: Calculate VG free space and requested size
+  set_fact:
+    vg_free_mb: "{{ (ansible_lvm.vgs[selected_vg].free_g | float * 1024) | int }}"
+    requested_mb: "{{ (tmp_lv_size | default('1G') | regex_replace('G','') | float * 1024) | int }}"
+
+- name: Debug insufficient space message
+  debug:
+    msg: "Skipping creation of LV '{{ tmp_item.lv_name }}' due to insufficient space in VG '{{ selected_vg }}'. Required: {{ requested_mb }} MB, Available: {{ vg_free_mb }} MB"
+  when: vg_free_mb < requested_mb
+
+- name: Create LV if it doesn't exist and VG has enough space
+  lvol:
+    vg: "{{ selected_vg }}"
+    lv: "{{ tmp_item.lv_name }}"
+    size: "{{ tmp_lv_size | default('500M') }}"
+    state: present
+  register: lv_create_result
+  when:
+    - lv_check.rc != 0
+    - vg_free_mb >= requested_mb
+
+- name: Create filesystem on LV if needed
+  filesystem:
+    fstype: xfs
+    dev: "/dev/{{ selected_vg }}/{{ tmp_item.lv_name }}"
+  when:
+    - lv_check.rc != 0
+    - vg_free_mb >= requested_mb
+
+- name: Re-check if LV exists after creation
+  command: "lvdisplay /dev/{{ selected_vg }}/{{ tmp_item.lv_name }}"
+  register: lv_confirm
+  failed_when: false
+  changed_when: false
+
+- name: Create mount point directory
+  file:
+    path: "{{ tmp_item.mount_point }}"
+    state: directory
+    mode: '1777'
+
+- name: Check current mount options
+  command: "findmnt -no OPTIONS {{ tmp_item.mount_point }}"
+  register: mount_opts
+  failed_when: false
+  changed_when: false
+
+- name: Determine if mount options need to be updated
+  set_fact:
+    needs_remount: >-
+      {{
+        ('nodev' not in mount_opts.stdout.split(',') or
+         'nosuid' not in mount_opts.stdout.split(',') or
+         'noexec' in mount_opts.stdout.split(','))
+      }}
+
+- name: Unmount if mounted with incorrect options
+  mount:
+    path: "{{ tmp_item.mount_point }}"
+    state: unmounted
+  when: needs_remount
+
+- name: Mount the LV with correct options
+  mount:
+    path: "{{ tmp_item.mount_point }}"
+    src: "/dev/{{ selected_vg }}/{{ tmp_item.lv_name }}"
+    fstype: xfs
+    opts: "defaults,nodev,nosuid"
+    state: mounted
+  when: lv_confirm.rc == 0
+
+- name: Ensure mount is persistent with correct options
+  mount:
+    path: "{{ tmp_item.mount_point }}"
+    src: "/dev/{{ selected_vg }}/{{ tmp_item.lv_name }}"
+    fstype: xfs
+    opts: "defaults,nodev,nosuid"
+    state: present
+  when: lv_confirm.rc == 0

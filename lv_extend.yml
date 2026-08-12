@@ -1,0 +1,131 @@
+---
+- name: Extend LVM and underlying disk if necessary
+  hosts: all
+  become: true
+  vars_files:
+    - group_vars/all/vault.yml # For vCenter credentials, with prod_host and dev_host
+
+  tasks:
+    - name: Dynamically set vCenter hostname based on inventory_hostname
+      ansible.builtin.set_fact:
+        vcenter_hostname: "{{ prod_host if inventory_hostname[:3] | lower == 'prd' else dev_host }}"
+      tags: always
+
+    - name: Set target VM name from inventory_hostname
+      ansible.builtin.set_fact:
+        target_vm_name: "{{ inventory_hostname }}"
+
+    - name: Gather minimal facts including LVM
+      ansible.builtin.setup:
+        gather_subset:
+          - "! all"
+          - "! min"
+          - "hardware"
+
+    - name: Get filesystem usage facts for all LVs
+      ansible.builtin.shell:
+        cmd: df --output=target,pcent | tail -n +2 | tr -d '%'
+      register: all_filesystem_usage
+      changed_when: false
+
+    - name: Identify LVs that are over the usage threshold and not the root volume
+      ansible.builtin.set_fact:
+        candidate_lvs: "{{ candidate_lvs | default([]) + [item.lv_details] }}"
+      loop: "{{ all_filesystem_usage.stdout_lines }}"
+      vars:
+        lv_info: "{{ item.split() }}"
+        lv_mount: "{{ lv_info[0] }}"
+        lv_usage: "{{ lv_info[1] | int }}"
+      when:
+        - lv_usage > 80
+        - lv_mount != '/'
+        - ansible_lvm.lvs | selectattr('mounts', 'defined') | selectattr('mounts', 'contains', lv_mount) | list | length > 0
+      loop_control:
+        label: "Checking LV with mount: {{ lv_mount }}"
+        
+    - name: Fail if no candidate logical volume was found
+      ansible.builtin.fail:
+        msg: "No logical volume found for expansion on {{ inventory_hostname }} that is over 80% full and not the root volume."
+      when: candidate_lvs | length == 0
+
+    - name: Process each candidate LV for expansion
+      loop: "{{ candidate_lvs }}"
+      loop_control:
+        loop_var: candidate
+      vars:
+        lv_details: "{{ ansible_lvm.lvs | selectattr('mounts', 'defined') | selectattr('mounts', 'contains', candidate) | first }}"
+      block:
+        - name: Check free space in the Volume Group for {{ lv_details.vg }}
+          ansible.builtin.command:
+            cmd: vgs --noheadings --unit G --separator , -o vg_free "{{ lv_details.vg }}"
+          register: vg_free_output
+          changed_when: false
+
+        - name: Set fact if VG needs expansion
+          ansible.builtin.set_fact:
+            vg_has_free_space: "{{ (vg_free_output.stdout | split(',') | first | float) >= (extend_size_gb | float) }}"
+
+        - name: Extend virtual disk via vSphere if no free VG space
+          when: not vg_has_free_space
+          block:
+            - name: Find underlying device path for {{ lv_details.vg }}
+              ansible.builtin.shell:
+                cmd: "lsblk -d -n -o NAME,TYPE,PKNAME | grep '{{ lv_details.devices.device | basename | regex_replace('\\d+$', '') }}' | awk '{print \"/dev/\"$3}'"
+              register: underlying_device
+              changed_when: false
+
+            - name: Get VM info and disk details
+              community.vmware.vmware_guest_info:
+                hostname: "{{ vcenter_hostname }}"
+                username: "{{ vcenter_username }}"
+                password: "{{ vcenter_password }}"
+                validate_certs: false
+                name: "{{ target_vm_name }}"
+              register: vm_info
+              delegate_to: localhost
+              run_once: true
+
+            - name: Get the disk label to extend
+              ansible.builtin.set_fact:
+                disk_to_extend: "{{ item.label }}"
+              loop: "{{ vm_info.instance.hw_disks }}"
+              when: item.unit_number == (underlying_device.stdout | regex_replace('.*scsi(.*):.*', '\\1') | int)
+              delegate_to: localhost
+
+            - name: Extend the virtual hard disk
+              community.vmware.vmware_guest_disk:
+                hostname: "{{ vcenter_hostname }}"
+                username: "{{ vcenter_username }}"
+                password: "{{ vcenter_password }}"
+                validate_certs: false
+                name: "{{ target_vm_name }}"
+                disk_label: "{{ disk_to_extend }}"
+                size_gb: "{{ (vm_info.instance.hw_disks | selectattr('label', '==', disk_to_extend) | map(attribute='size_gb') | first | float) + extend_size_gb }}"
+                datastore: "{{ vm_info.instance.hw_disks | selectattr('label', '==', disk_to_extend) | map(attribute='datastore') | first }}"
+              register: vm_disk_resize
+              delegate_to: localhost
+              run_once: true
+
+            - name: Rescan block devices to detect new space
+              ansible.builtin.command:
+                cmd: rescan-scsi-bus.sh
+              when: vm_disk_resize.changed
+
+        - name: Grow the partition to fill the new disk space
+          ansible.builtin.command:
+            cmd: growpart "{{ lv_details.devices.device | regex_replace('\\d+$', '') }}" "{{ lv_details.devices.device | regex_replace('.*(\\d+)$', '\\1') }}"
+          when: not vg_has_free_space
+
+        - name: Resize the Physical Volume (PV) to recognize new partition size
+          ansible.builtin.command:
+            cmd: pvresize "{{ lv_details.devices.device }}"
+          changed_when: true
+          when: not vg_has_free_space
+
+        - name: Extend the Logical Volume (LV) to 100% free space in the VG and resize filesystem
+          community.general.lvol:
+            vg: "{{ lv_details.vg }}"
+            lv: "{{ lv_details.lv }}"
+            size: "+100%FREE"
+            resizefs: true
+            force: true

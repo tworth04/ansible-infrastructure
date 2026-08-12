@@ -1,0 +1,25 @@
+---
+
+- name: Import systemd facts
+  service_facts:
+
+- name: ensure clean install
+  file:
+    #    path: /etc/qualys/hostid 
+    path: /etc/qualys 
+    state: absent
+
+- name: Install Qualys 
+  import_tasks: install.yml
+#  when: not 'qualys.service' in ansible_facts.services
+
+#- name: Verify qualys proxy settings to /etc/sysconfig/qualys-cloud-agent "{{ ansible_hostname }}"
+#  copy:
+#    src: "{{ qualys_proxy }}"
+#    dest: /etc/sysconfig/qualys-cloud-agent
+
+#- name: restart qualys service
+#  systemd_service:
+#    name: qualys-cloud-agent
+#    state: restarted
+#    enabled: true

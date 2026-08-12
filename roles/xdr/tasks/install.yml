@@ -1,0 +1,37 @@
+---
+
+- name: Send Cortex to /tmp on "{{ ansible_hostname }}"
+  copy:
+    src: "{{ cortex_rpm }}"
+    dest: /tmp/{{ cortex_rpm }}
+
+- name: Create directory structure if not present
+  file:
+    path: /etc/panw
+    state: directory
+    mode: '0755'
+
+- name: Copy Conf file to /etc/panw
+  copy:
+    src: "{{ cortex_config }}"
+    dest: /etc/panw/cortex.conf
+
+#- name: Install package foo
+#  command: rpm -i /tmp/{{ cortex_rpm }}
+
+- name: Install Cortex 
+  yum:
+    name: /tmp/{{ cortex_rpm }}
+    state: present
+    disable_gpg_check: true
+    disablerepo: '*' 
+  async: 60
+  poll: 5
+
+- name: restart traps service 
+  ansible.builtin.systemd_service:
+    name: traps_pmd
+    state: restarted
+    enabled: true
+     
+

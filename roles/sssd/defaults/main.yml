@@ -1,0 +1,3 @@
+sssd: sssd.conf
+bind_username: svcdomjoiner
+bind_password: "{{ vault_bind_password }}"

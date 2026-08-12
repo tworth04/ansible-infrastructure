@@ -1,0 +1,76 @@
+---
+- hosts: '{{target|default("all")}}'
+#  gather_facts: false 
+  ignore_errors: true
+  become: true
+  serial: 50
+  tasks:
+
+    - name: Check if Tainium is installed
+      stat:
+        path: /opt/Tanium
+      register: register_tanium
+
+    - name: Check if Cortex installed correctly
+      stat:
+        path: /opt/traps
+      register: register_traps
+
+    - name: Check if Cortex installed correctly
+      stat:
+        path: /opt/splunkforwarder
+      register: register_splunk
+
+    - name: Check if Cortex installed correctly
+      stat:
+        path: /opt/tivoli
+      register: register_tivoli
+
+    - debug:
+        var: register_traps 
+      when: not register_traps.stat.exists
+      register: no_traps
+
+    - debug:
+        var: register_splunk
+      when: not register_splunk.stat.exists
+      register: no_splunk
+
+    - debug:
+        var: register_tivoli
+      when: not register_tivoli.stat.exists
+      register: no_tivoli
+
+
+#    - name: create a text file with my list of servers
+#      copy:
+#        content: "{{ no_tivoli }}"
+#        dest: /tmp/tivoli.txt
+#      delegate_to: localhost
+#
+#    - name: create a text file with my list of servers
+#      copy:
+#        content: "{{ no_splunk }}"
+#        dest: /tmp/splunk.txt
+#      delegate_to: localhost
+#
+#    - name: create a text file with my list of servers
+#      copy:
+#        content: "{{ no_traps }}"
+#        dest: /tmp/traps.txt
+#      delegate_to: localhost
+
+#    - name: Send Email if updates are available or if there's an error
+#      community.general.mail:
+#        host: smtprelay.example.com
+#        port: 25
+#        to:
+#        - Steve Example <steven.example@example.com>
+#        cc:
+#        - Travis Worth <travis.worth@example.com>
+#        subject: services installed 
+#        body: "{{ lookup('file', '/tmp/reboot_list.txt') }}" 
+#        body: See attached file for pending servers needing updates.
+#        attach: /tmp/reboot_list.txt
+#      delegate_to: localhost
+#      run_once: true

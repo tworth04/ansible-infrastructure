@@ -1,0 +1,169 @@
+---
+# CIS Hardening Role
+
+# 1️⃣ Gather service and package facts
+- name: Gather service facts
+  ansible.builtin.service_facts: {}
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+# 2️⃣ Find and delete obsolete configuration files
+- name: Check if obsolete paths exist
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+  register: paths_exist
+  loop:
+    - { path: /etc/ssh/,        pattern: "sshd_config.*" }
+    - { path: /etc/pam.d/,      pattern: "password-auth.*" }
+    - { path: /etc/sysctl.d/,   pattern: "*" }
+
+- name: Find obsolete files
+  ansible.builtin.find:
+    paths: "{{ item.item.path }}"
+    patterns: "{{ item.item.pattern }}"
+  register: files_to_remove
+  loop: "{{ paths_exist.results }}"
+  when: item.stat.exists and item.stat.isdir
+
+- name: Delete found files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ files_to_remove.results | map(attribute='files') | flatten | map(attribute='path') | list }}"
+  when: files_to_remove.results | length > 0
+
+# 3️⃣ Ensure /etc/ssh/sshd_config.d exists (RHEL/Rocky ≥ 8/9)
+- name: Ensure sshd_config.d directory exists
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d
+    state: directory
+    mode: '0755'
+  when:
+    - ansible_facts.distribution_file_variety in ['RedHat', 'Rocky']
+    - ansible_facts.distribution_major_version | int >= 8
+
+# 4️⃣ Copy static configuration files
+- name: Copy static configuration files
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode | default('0644') }}"
+    validate: "{{ item.validate | default(omit) }}"
+  loop:
+    - { src: files/sudoers, dest: /etc/sudoers, mode: '0440', validate: '/usr/sbin/visudo -cf %s' }
+    - { src: files/motd, dest: /etc/motd }
+    - { src: files/issue, dest: /etc/issue }
+    - { src: files/tmout.ksh, dest: /etc/profile.d/tmout.ksh }
+    - { src: files/tmout.sh, dest: /etc/profile.d/tmout.sh }
+    - { src: files/tmout.csh, dest: /etc/profile.d/tmout.csh }
+    - { src: files/00-complianceascode-hardening.conf, dest: /etc/ssh/sshd_config.d/00-complianceascode-hardening.conf }
+    - { src: files/01-complianceascode-reinforce-os-defaults.conf, dest: /etc/ssh/sshd_config.d/01-complianceascode-reinforce-os-defaults.conf }
+    - { src: files/01-permitrootlogin.conf, dest: /etc/ssh/sshd_config.d/01-permitrootlogin.conf }
+    - { src: files/chrony.conf, dest: /etc/sysconfig/chrony.conf }
+    - { src: files/99-sysctl.conf, dest: /etc/sysctl.d/99-sysctl.conf }
+    - { src: files/aide.cron, dest: /var/spool/cron/aide.cron }
+    - { src: files/journald.conf, dest: /etc/systemd/journald.conf }
+    - { src: files/lx-admin, dest: /etc/sudoers.d/lx-admin }
+    - { src: files/pam_env.conf, dest: /etc/security/pam_env.conf }
+    - { src: files/core.conf, dest: /etc/security/limits.d/99-coredump.conf }
+    - { src: files/sshd_config, dest: /etc/ssh/sshd_config }
+    - { src: files/CIS.conf, dest: /etc/modprobe.d/CIS.conf }
+    - { src: files/auditd.conf, dest: /etc/audit/auditd.conf }
+    - { src: files/99-localefix.sh, dest: /etc/profile.d/99-localefix.sh }
+
+# 5️⃣ Clean up /etc/issue.net and symlink to /etc/issue
+- name: Remove /etc/issue.net and create symlink to /etc/issue
+  block:
+    - name: Remove existing issue.net
+      ansible.builtin.file:
+        path: /etc/issue.net
+        state: absent
+
+    - name: Symlink /etc/issue to /etc/issue.net
+      ansible.builtin.file:
+        src: /etc/issue
+        dest: /etc/issue.net
+        state: link
+  notify: restart sshd
+
+# 6️⃣ Normalize Authselect to base profile with only with-mkhomedir
+- name: Get current authselect profile
+  ansible.builtin.command:
+    cmd: authselect current
+  register: authselect_current_profile
+  changed_when: false
+
+- name: Set facts for profile ID and features
+  ansible.builtin.set_fact:
+    current_profile_id: "{{ authselect_current_profile.stdout_lines | select('search', 'Profile ID:') | first | regex_replace('^Profile ID:\\s*', '') | trim }}"
+    enabled_features: "{{ authselect_current_profile.stdout_lines | select('search', 'Enabled features:') | first | regex_replace('^Enabled features:\\s*', '') | split(' ') | map('trim') | list }}"
+  when: authselect_current_profile.stdout is defined
+
+- name: Determine base profile to use
+  set_fact:
+    desired_base_profile: >-
+      {% if 'samba-winbind' in ansible_facts.packages or 'samba-winbind-clients' in ansible_facts.packages %}
+        winbind
+      {% elif 'sssd' in ansible_facts.packages %}
+        sssd
+      {% else %}
+        nis
+      {% endif %}
+
+- name: Select base profile with force
+  ansible.builtin.command:
+    cmd: authselect select {{ desired_base_profile }} --force
+  when: current_profile_id != desired_base_profile
+  notify: restart sssd
+
+- name: Disable all features except with-mkhomedir
+  ansible.builtin.command:
+    cmd: authselect disable-feature {{ item }}
+  loop: "{{ enabled_features }}"
+  when: item != 'with-mkhomedir'
+  notify: restart sssd
+
+- name: Enable with-mkhomedir if not already enabled
+  ansible.builtin.command:
+    cmd: authselect enable-feature with-mkhomedir
+  when: "'with-mkhomedir' not in enabled_features"
+  notify: restart sssd
+
+# 7️⃣ Remove unwanted packages
+- name: Remove OpenLDAP and telnet
+  ansible.builtin.package:
+    name:
+      - openldap-clients
+      - telnet
+    state: absent
+
+# 8️⃣ File permission hardening
+- name: Set permissions on cron directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0700'
+    owner: root
+    group: root
+  loop:
+    - /etc/cron.hourly
+    - /etc/cron.daily
+    - /etc/cron.weekly
+    - /etc/cron.monthly
+    - /etc/cron.d
+
+- name: Set permission on /etc/crontab
+  ansible.builtin.file:
+    path: /etc/crontab
+    mode: '0600'
+    owner: root
+    group: root
+
+- name: Set permission on /etc/passwd-
+  ansible.builtin.file:
+    path: /etc/passwd-
+    mode: '0600'
+    owner: root
+    group: root

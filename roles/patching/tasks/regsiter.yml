@@ -1,0 +1,39 @@
+---
+- name: remove katello package
+  yum: 
+    name: katello-ca-consumer-prod-sat02.example.com-1.0-2.noarch
+    state: absent
+  async: 20
+  poll: 5
+
+- name: Clean RHSM
+  command: subscription-manager clean
+
+- name: Clean Yum
+  command: yum clean all
+
+- name: Send Katello to /tmp on "{{ ansible_hostname }}"
+  copy:
+    src: "{{ katello_rpm }}"
+    dest: /tmp/{{ katello_rpm }}
+
+- name: Install katello cert
+  yum:
+    name: /tmp/{{ katello_rpm }}
+    state: latest
+    disable_gpg_check: true
+  async: 20
+  poll: 5
+
+#- name: Clean Yum/RHSM
+#  command: subscription-manager unregister
+
+- name: Register with Example Satellite Server 'RHEL'
+  command: 'subscription-manager register --org="Exampleservices" --activationkey="admin" --force'
+  async: 20
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Register with Example Satellite Server 'Rocky'
+  command: 'subscription-manager register --org="Exampleservices" --activationkey="Rocky" --force'
+  async: 20
+  when: ansible_facts['distribution'] == "Rocky" 

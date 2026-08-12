@@ -1,0 +1,34 @@
+packages_redhat:
+  - vim
+  - yum-utils
+#  - sg3-utils
+  - sg3_utils-libs 
+  - wget
+  - openssl
+  - open-vm-tools 
+  - ca-certificates
+  - policycoreutils-python-utils
+  - selinux-policy-devel
+  - cloud-utils-growpart
+#  - screen
+
+packages_rhel7:
+  - policycoreutils-python
+  - vim
+  - sg3_utils 
+  - sg3_utils-libs 
+  - yum-utils
+  - wget
+  - openssl
+  - open-vm-tools
+  - ca-certificates
+  - selinux-policy-devel
+
+mariadb_rocky:
+  - python3-PyMySQL
+  - mariadb-server
+
+mysql_root_password: "{{ vault_mysql_root_password }}"
+
+redis_rocky:
+  - redis-server

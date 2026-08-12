@@ -1,0 +1,21 @@
+# Ansible secrets
+group_vars/all.yml
+inventory/gcp/service_account.json
+*.vault
+vault-password*
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+
+# Python
+__pycache__/
+*.pyc
+
+# Ansible
+*.retry
+facts.d/
+
+# OS
+.DS_Store

@@ -1,0 +1,11 @@
+---
+- name: 'Gather and cache facts for all hosts'
+  hosts: '{{ target | default("all") }}'
+  become: true
+  gather_facts: true
+  tags: [ never, precheck ]
+
+  tasks:
+    - name: 'No-op task to ensure facts are gathered'
+      ansible.builtin.debug:
+        msg: "Gathering facts for {{ inventory_hostname }}..."

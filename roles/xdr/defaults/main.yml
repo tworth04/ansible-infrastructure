@@ -1,0 +1,6 @@
+#cortex_rpm: cortex-8.1.0.107064.rpm 
+cortex_rpm: cortex-8.9.0.136780.rpm 
+cortex_config: cortex.conf.nonprod
+#cortex_config: cortex.conf.prod
+cortex_config_nonprod: cortex.conf.nonprod
+cortex_config_prod: cortex.conf.prod

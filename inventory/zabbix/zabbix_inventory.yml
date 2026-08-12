@@ -1,0 +1,12 @@
+---
+plugin: community.zabbix.zabbix_inventory 
+server_url: http://prd-adm-zab01.example.com/zabbix 
+login_user: Admin
+login_password: "{{ vault_zabbix_password }}"
+cache_plugin: jsonfile
+cache_timeout: 10 
+cache_connection: /etc/ansible/facts.d/zabbix
+add_zabbix_groups: true
+#host_zapi_query:
+  #  selectParentTemplates: ['Linux by Zabbix agent']
+  #  selectGroups: ['name']

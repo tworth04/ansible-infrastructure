@@ -1,0 +1,22 @@
+---
+- hosts: '{{target|default("all")}}'
+#  gather_facts: false 
+  ignore_errors: true
+  become: true
+  serial: 50
+  tasks:
+
+  - name: Restore W1 from previous backup 
+    unarchive:
+      src: /home/sp19363/W1.backup11302023.gz
+      dest: /webdata/W1
+      owner: webmaster
+      group: webmaster
+
+  - name: Restart httpd and php-fdm
+    service:
+      name: "{{ item }}"
+      state: restarted
+    with_items:
+      - httpd
+      - php-fdm    

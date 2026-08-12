@@ -1,0 +1,62 @@
+packages_redhat:
+#  - python3-pyvmomi
+  - vim
+  - yum-utils
+#  - sg3-utils
+  - sg3_utils-libs 
+  - wget
+  - openssl
+  - open-vm-tools 
+  - ca-certificates
+  - policycoreutils-python-utils
+  - selinux-policy-devel
+  - cloud-utils-growpart
+#  - screen
+  - realmd
+  - oddjob
+  - oddjob-mkhomedir
+  - selinux-policy-devel
+  - m4
+  - make
+  - policycoreutils-devel
+  - sssd 
+  - adcli
+packages_rhel7:
+#  - policycoreutils-python
+#  - vim
+#  - sg3_utils 
+#  - sg3_utils-libs 
+#  - yum-utils
+#  - wget
+#  - openssl
+#  - open-vm-tools
+#  - ca-certificates
+#  - selinux-policy-devel
+
+mariadb_rocky:
+  - python3-PyMySQL
+  - mariadb-server
+
+mysql_root_password: "{{ vault_mysql_root_password }}"
+
+web_services: 
+  - php-fpm
+  - httpd
+
+redis_rocky:
+  - redis-server
+    
+bind_username: svcdomjoiner
+bind_password: "{{ vault_bind_password }}"
+
+sshd_config: sshd_config
+sshd_extras:
+  - 01-permitrootlogin.con
+  - 50-redhat.conf
+lx-admin: lx-admin
+
+rhel8cis_sysctl_file: /etc/sysctl.d/99_cis.conf
+rhel8cis_ipv6_required: false
+rhel8cis_ipv6_sysctl_force: false
+rhel8cis_ipv4sctl_force: false
+system_is_container: false

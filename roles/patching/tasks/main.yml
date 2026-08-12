@@ -1,0 +1,123 @@
+---
+# --------------------------------------------------------------------
+# 1.  Detect Satellite registration (or lack thereof)
+# --------------------------------------------------------------------
+- name: Check if system is registered to Satellite
+  ansible.builtin.stat:
+    path: /etc/yum.repos.d/redhat.repo
+  register: register_repo
+
+- name: Debug the size of the repo file
+  ansible.builtin.debug:
+    msg: "redhat.repo size = {{ register_repo.stat.size | default('N/A') }}"
+
+# --------------------------------------------------------------------
+# 2.  Optional: Register the system (commented out in the original)
+# --------------------------------------------------------------------
+#- name: System Not Registered … Registering Now
+#  ansible.builtin.import_tasks: register.yml
+#  when:
+#    - ansible_facts.os_family == "RedHat"
+#    - ansible_facts.distribution_major_version | int == 8
+#    - register_repo.stat.size != 5122   # example “unregistered” size
+#    - ansible_facts.distribution == "Rocky"
+#    - register_repo.stat.size != 1534   # Rocky “unregistered” size
+
+# --------------------------------------------------------------------
+# 3.  RPM‑DB rebuild – run only if the subsequent yum update fails
+# --------------------------------------------------------------------
+- name: Attempt system update – rebuild RPM‑DB only if needed
+  block:
+    - name: Update all packages
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+        disable_gpg_check: true
+      register: yum_update
+      failed_when: yum_update.rc != 0
+
+  rescue:
+    - name: Inspect yum failure
+      ansible.builtin.debug:
+        msg: "yum failed: {{ yum_update.stderr | default('no error captured') }}"
+
+    - name: Rebuild RPM database if a corruption error is detected
+      ansible.builtin.command:
+        cmd: rpmdb --rebuilddb
+      become: true
+      when: >
+        yum_update is failed and
+        (
+          'rpmdb' in (yum_update.stderr | default('')).lower()
+          or
+          'cannot read package database' in (yum_update.stderr | default('')).lower()
+          or
+          'corrupted' in (yum_update.stderr | default('')).lower()
+        )
+
+    - name: Retry the yum update after rebuilding
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+        disable_gpg_check: true
+      become: true
+      register: yum_retry
+      failed_when: yum_retry.rc != 0
+      when: yum_update is failed
+
+# --------------------------------------------------------------------
+# 4.  Enable/disable Zabbix repositories (RHEL 8 vs 9)
+# --------------------------------------------------------------------
+- name: Disable RHEL 9 Zabbix repo on non‑Rocky hosts
+  ansible.builtin.command:
+    cmd: subscription-manager repos --disable=Exampleservices_Zabbix_zabbix6_4_rhel_9
+  when: ansible_facts.distribution != "Rocky"
+  async: 45
+  poll: 0
+
+- name: Enable RHEL 8 Zabbix repo on non‑Rocky hosts
+  ansible.builtin.command:
+    cmd: subscription-manager repos --enable=Exampleservices_Zabbix_zabbix6_4_rhel_8
+  when: ansible_facts.distribution != "Rocky"
+  async: 45
+  poll: 0
+
+# --------------------------------------------------------------------
+# 5.  Clean up after the update
+# --------------------------------------------------------------------
+- name: Autoremove unused packages
+  ansible.builtin.command:
+    cmd: yum autoremove -y
+  when: result.rc == 0
+  register: result  # <-- defined below
+
+- name: Check if a reboot is required
+  ansible.builtin.command:
+    cmd: needs-restarting -r
+  register: result
+  ignore_errors: true
+
+# --------------------------------------------------------------------
+# 6.  Remove any leftover Rocky repos (only on Rocky hosts)
+# --------------------------------------------------------------------
+- name: Find Rocky repo files
+  ansible.builtin.find:
+    paths: /etc/yum.repos.d
+    patterns: "rocky*.repo"
+  register: rocky_repo_files
+  when: ansible_facts.distribution == "Rocky"
+
+- name: Delete the Rocky repo files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ rocky_repo_files.files }}"
+  when: rocky_repo_files.matched > 0
+
+# --------------------------------------------------------------------
+# 7.  Reboot if required
+# --------------------------------------------------------------------
+- name: Reboot the host if a restart is pending
+  ansible.builtin.reboot:
+    msg: "Rebooting because a package update requires it."
+  when: result.rc == 0

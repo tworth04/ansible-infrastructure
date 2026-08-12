@@ -1,0 +1,32 @@
+---
+
+- name: Check if Zabbix is installed
+  stat:
+    path: /etc/zabbix
+  register: register_zabbix
+
+#- name: Install the correct zabbix agent2 for RHEL
+#  import_tasks: install.yml
+#  when: not register_zabbix.stat.exists
+
+- name: Install the latest version of Zabbix Agent
+  ansible.builtin.dnf:
+    name: zabbix-agent2
+    disable_gpg_check: true
+    enablerepo: Exampleservices_Zabbix_zabbix7_rhel_8
+    disablerepo: rhel-8-for-x86_64-baseos-rpms,rhel-8-for-x86_64-appstream-rpms
+    state: latest
+  async: 20
+  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "8"
+
+- name: Copy zabbix-agent.conf
+  ansible.builtin.template:
+    src: "{{ zabbix_agent2_config }}"
+    dest: /etc/zabbix/zabbix_agent2.conf
+    force: true
+
+- name: Restart Zabbix Agent
+  systemd_service:
+    name: zabbix-agent2
+    state: restarted
+    enabled: true

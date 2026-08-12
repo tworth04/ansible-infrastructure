@@ -1,0 +1,32 @@
+{% set host_changes = {} %}
+{% set host_failures = {} %}
+{% set host_ok = {} %}
+{% for res in results %}
+{%   if res.event == 'runner_on_ok' %}
+{%     if res.result.changed %}
+{%       set _ = host_changes.update({res.host: host_changes.get(res.host, 0) + 1}) %}
+{%     else %}
+{%       set _ = host_ok.update({res.host: host_ok.get(res.host, 0) + 1}) %}
+{%     endif %}
+{%   elif res.event == 'runner_on_failed' %}
+{%     set _ = host_failures.update({res.host: res.result.msg|default('Error')}) %}
+{%   endif %}
+{% endfor %}
+
+{% set sorted_hosts = host_changes.keys()|list|sort(attribute=lambda h: host_changes.get(h, 0), reverse=True) %}
+
+#################################################################
+# Sorted Host Summary by 'changed' tasks
+#################################################################
+
+{% for host in sorted_hosts %}
+Host: {{ '{: <30}'.format(host) }} | changed: {{ '{: <5}'.format(host_changes.get(host, 0)) }} | ok: {{ '{: <5}'.format(host_ok.get(host, 0)) }} | failed: {{ '{: <5}'.format(host_failures.get(host, 0) if host in host_failures else 0) }}
+{% endfor %}
+
+{% set no_changes_hosts = (host_ok.keys()|list + host_failures.keys()|list) | difference(host_changes.keys()|list) | sort %}
+{% for host in no_changes_hosts %}
+Host: {{ '{: <30}'.format(host) }} | changed: 0 | ok: {{ '{: <5}'.format(host_ok.get(host, 0)) }} | failed: {{ '{: <5}'.format(host_failures.get(host, 0) if host in host_failures else 0) }}
+{% endfor %}
+
+#################################################################
+

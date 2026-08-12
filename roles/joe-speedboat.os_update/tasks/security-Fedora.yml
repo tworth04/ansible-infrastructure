@@ -1,0 +1,6 @@
+---
+- name: install security patches with dnf
+  shell: dnf -y upgrade-minimal
+  register: dnfout
+  changed_when: not dnfout.stdout is search('No security updates needed')
+...

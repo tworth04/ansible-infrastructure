@@ -1,0 +1,84 @@
+---
+- hosts: '{{target|default("all")}}'
+#  gather_facts: false 
+  ignore_errors: true
+  become: true
+#  serial: 50
+  tasks:
+  
+    - name: Create directories for runapi 
+      file:
+        state: directory
+        recurse: yes
+        owner: runapi
+        group: runapi
+        path: "{{ item }}"
+      loop:
+#        - /mnt/APIServices/OneStopTool/saml/config
+#        - /mnt/APIServices/OneStopTool/saml/log
+#        - /mnt/APIServices/OneStopTool/saml/cert
+#        - /opt/SpringBoot/InstalledApplications/OneStopTool/saml
+#        - /mnt/APIServices/OneStopTool/bigquery
+#        - /mnt/APIServices/OneStopTool/bigquery/config
+#        - /mnt/APIServices/OneStopTool/bigquery/log
+#        - /mnt/APIServices/OneStopTool/bigquery/key
+#        - /opt/SpringBoot/InstalledApplications/OneStopTool/bigquery
+#        - /mnt/APIServices/OneStopTool/search
+#        - /mnt/APIServices/OneStopTool/search/config
+#        - /mnt/APIServices/OneStopTool/search/log
+#        - /opt/SpringBoot/InstalledApplications/OneStopTool/search
+#        - /mnt/APIServices/OneStopTool/master
+#        - /mnt/APIServices/OneStopTool/master/config
+#        - /mnt/APIServices/OneStopTool/master/log
+#        - /opt/SpringBoot/InstalledApplications/OneStopTool/master
+#
+#        - /mnt/APIServices/OneStopTool/casedetails
+#        - /mnt/APIServices/OneStopTool/casedetails/config
+#        - /mnt/APIServices/OneStopTool/casedetails/log
+#        - /opt/SpringBoot/InstalledApplications/OneStopTool/casedetails
+#        - /mnt/APIServices/OneStopTool/audit
+#        - /mnt/APIServices/OneStopTool/audit/config
+#        - /mnt/APIServices/OneStopTool/audit/log
+#        - /opt/SpringBoot/InstalledApplications/OneStopTool/audit
+
+    - name: Copy application files
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        remote_src: yes
+        owner: runapi
+        group: runapi
+        mode: '0755' # Adjust permissions as needed
+      loop:
+#        - { src: '/tmp/ost/saml/application.yml', dest: '/mnt/APIServices/OneStopTool/saml/config' }
+#        - { src: '/tmp/ost/saml/agent-config.txt', dest: '/mnt/APIServices/OneStopTool/saml/cert' }
+#        - { src: '/tmp/ost/saml/logback.xml', dest: '/mnt/APIServices/OneStopTool/saml/config' }
+#        - { src: '/tmp/ost/bquery/application.yml', dest: '/mnt/APIServices/OneStopTool/bigquery/config' }
+#        - { src: '/tmp/ost/bquery/key.json', dest: '/mnt/APIServices/OneStopTool/bigquery/key' }
+#        - { src: '/tmp/ost/bquery/logback.xml', dest: '/mnt/APIServices/OneStopTool/bigquery/config' }
+#        - { src: '/tmp/ost/search/application.yml', dest: '/mnt/APIServices/OneStopTool/search/config' }
+#        - { src: '/tmp/ost/search/logback.xml', dest: '/mnt/APIServices/OneStopTool/search/config' }
+#        - { src: '/tmp/ost/master/application.yml', dest: '/mnt/APIServices/OneStopTool/master/config' }
+#        - { src: '/tmp/ost/master/logback.xml', dest: '/mnt/APIServices/OneStopTool/master/config' }
+
+        - { src: '/tmp/ost/casedetails/application.yml', dest: '/mnt/APIServices/OneStopTool/casedetails/config' }
+        - { src: '/tmp/ost/casedetails/logback.xml', dest: '/mnt/APIServices/OneStopTool/casedetails/config' }
+        - { src: '/tmp/ost/audit/application.yml', dest: '/mnt/APIServices/OneStopTool/audit/config' }
+        - { src: '/tmp/ost/audit/logback.xml', dest: '/mnt/APIServices/OneStopTool/audit/config' }
+
+    - name: Copy jar files
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        remote_src: yes
+        owner: runapi
+        group: runapi 
+        mode: '0755' # Adjust permissions as needed
+      loop:
+#        - { src: '/tmp/ost/saml/ost-auth-service.jar', dest: '/opt/SpringBoot/InstalledApplications/OneStopTool/saml' }
+#        - { src: '/tmp/ost/bquery/ost-bigquery-service.jar', dest: '/opt/SpringBoot/InstalledApplications/OneStopTool/bigquery' }
+#        - { src: '/tmp/ost/search/ost-search-service.jar', dest: '/opt/SpringBoot/InstalledApplications/OneStopTool/search' }
+#        - { src: '/tmp/ost/master/ost-master-service.jar', dest: '/opt/SpringBoot/InstalledApplications/OneStopTool/master' }
+
+        - { src: '/tmp/ost/casedetails/ost-casedetails-service.jar', dest: '/opt/SpringBoot/InstalledApplications/OneStopTool/casedetails' }
+        - { src: '/tmp/ost/audit/ost-audit-service.jar', dest: '/opt/SpringBoot/InstalledApplications/OneStopTool/audit' }

@@ -1,0 +1,213 @@
+---
+#dev_host: vcenter-prod.example.com
+#prod_host: vc01006.example.com
+#host: vcenter-prod.example.com
+host: vcenter-prod.example.com
+uname: svc\vc_admin
+pword: "{{ vault_vsphere_password }}"
+#template: rocky-95-minimal
+template: rhel96-minimal
+#template: rhel10-minimal
+datastore: PURE_ESXI_Prod_LinuxApp_DS25
+#datastore: PURE_ESXi_Lower_LinuxApp_DS05_New 
+#datastorex: PURE_ESXi_Lower_LinuxAppx_DS08 
+#devx_datacenter: Example Dev
+#datacenter: Example Dev
+#prod_datacenter: Example DC
+datacenter: Example DC
+#vlan: dvPG-SQL-Services-411
+#devx_cluster: Lower Env Linux App Services
+#cluster: Lower Env Linux App Services
+cluster: Prod Linux App Services 
+#folder: "All Virtual Machines/Development/Linux/DEV"
+#devx_folder: "All Virtual Machines/Linux/dev"
+#prod_folder: "Production Linux/"
+folder: "Production Linux"
+
+servers: 
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'qua-ezp-mys01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'quz-grp-web71', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'per-grp-web71', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'trn-grp-web71', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'qua-emc-nod01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'qua-emc-nod02', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'trn-emc-nod01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'trn-emc-nod02', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-emc-nod01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-emc-nod02', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-cca-api01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'per-cca-api02', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'qua-grp-web01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-kai-mym01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-kai-mym01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-kai-mys01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-kai-myb01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-cmg-nod03', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-cmg-nod04', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-cmg-nod05', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'per-cmg-nod05', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'per-cmg-nod05', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'per-ost-nod01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'per-ost-nod02', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'per-app-web02', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-DevDatabase-441' }
+#  - { name: 'per-mem-web02', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-DevDatabase-441' }
+#  - { name: 'per-mem-web03', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-DevDatabase-441' }
+#  - { name: 'per-mem-web04', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-DevDatabase-441' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.5', gateway: '10.0.0.5', vlan: 'dvPG-App-Services-60' }
+#  - { name: 'per-cmg-nod04', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-DevDatabase-441' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-415' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-415' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-415' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-415' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-415' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-415' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-415' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-415' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.5', gateway: '10.0.0.5', vlan: 'dvPG-App-Servies-45' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'poc-pla-tst01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SQL-Services-411' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SQL-Services-411' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'qua-gus-mys01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'qua-gus-web01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1',  gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'server-N', ip: '10.0.0.1',  gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'sat-tmp-rky9',  ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'qua-fnt-web01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'qua-int-bat01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'lb1-int-slp01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATDatabase-421' }
+#  - { name: 'server-N', ip: '10.0.0.5', gateway: '10.0.0.5', vlan: 'dvPG-App-Servies-45' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.5', gateway: '10.0.0.5', vlan: 'dvPG-App-Servies-45' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1',  gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SQL-Services-411' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SQL-Services-411' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SQL-Services-411' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'prd-example-project', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-433' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SQL-Services-411' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-Linux-Services-413' }
+#dev_servers:
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#
+#sit_servers:
+#  - { name: 'server-N', ip: '10.0.0.', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#  - { name: 'server-N', ip: '10.0.0.', gateway: '10.0.0.1', vlan: 'dvPG-SitLinuxServers-443' }
+#
+#qua_servers:
+#  - { name: 'qua-int-mys01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'qua-int-mys01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'qua-int-mys01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }
+#  - { name: 'qua-int-mys01', ip: '10.0.0.1', gateway: '10.0.0.1', vlan: 'dvPG-UATLinuxServers-423' }

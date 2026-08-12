@@ -1,0 +1,32 @@
+---
+- name: Fix /var/tmp mount options
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Unmount /var/tmp
+      ansible.posix.mount:
+        path: /var/tmp
+        state: unmounted
+      ignore_errors: true
+
+    - name: Remove existing /var/tmp entry from /etc/fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: '^.*\\s+/var/tmp\\s+.*$'
+        state: absent
+
+    - name: Add correct /var/tmp entry to /etc/fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: '/dev/mapper/rl-var_tmp /var/tmp xfs defaults,nodev,nosuid 0 0'
+        state: present
+        create: yes
+
+    - name: Mount /var/tmp with correct options
+      ansible.posix.mount:
+        path: /var/tmp
+        src: /dev/mapper/rl-var_tmp
+        fstype: xfs
+        opts: defaults,nodev,nosuid
+        state: mounted

@@ -1,0 +1,49 @@
+---
+- hosts: '{{target|default("all")}}'
+#  gather_facts: false 
+  ignore_errors: true
+  become: true
+#  serial: 50
+  vars:
+    missing_agents: [] 
+    
+  tasks:
+
+    - name: Populate service facts
+      service_facts:
+
+    - name: get installed services
+      debug:
+        msg: "{{ item.key }}" 
+      with_dict:
+        xdr: traps_pmd.service 
+        zabbix: zabbix-agent2.service
+        tanium: taniumclient.service
+        qualys: qualys-cloud-agent.service
+        splunk: splunkd.service
+      loop_control:
+        label: "{{ item.value }}"
+      when:  ansible_facts.services is defined and item.value not in ansible_facts.services
+      ignore_errors: true
+
+    - name: create list    
+      set_fact:
+        missing_agents: "{{ item.key }}"
+      with_dict:
+        xdr: traps_pmd.service
+        zabbix: zabbix-agent2.service
+        tanium: taniumclient.service
+        qualys: qualys-cloud-agent.service
+        splunk: splunkd.service
+      loop_control:
+        label: "{{ item.value }}"
+      when:  ansible_facts.services is defined and item.value not in ansible_facts.services
+
+    - name: show list
+      debug:
+        var: "{{ missing_agents }}"
+
+    - include_role: 
+        name: "{{ missing_agents }}"
+      when: missing_agents is defined
+      loop: "{{missing_agents}}"

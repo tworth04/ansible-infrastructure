@@ -1,0 +1,47 @@
+plugin: community.vmware.vmware_vm_inventory
+strict: False
+#hostname: 10.0.0.1
+hostname: 10.0.0.1
+username: ansible-svc@example.com
+password: "{{ vault_vcenter_password }}"
+validate_certs: False
+flatten: False
+cache_plugin: jsonfile
+cache_timeout: 86400
+cache_connection: /etc/ansible/facts.d/prod
+
+ansible_user: ansible-user
+ansible_ssh_private_key_file: /home/ansible-user/.ssh/id_rsa
+
+hostnames:
+  - "guest.hostName | split('.') | first"
+#  - 'guest.hostName'
+  - "name | split('-21June2022') | first"
+
+properties:
+    - 'name'
+    - 'config.name'
+    - 'guest.ipAddress'
+    - 'guest.toolsStatus'
+    - 'guest.toolsRunningStatus'
+    - 'config.guestFullName'
+    - 'config.guestId'
+    - 'guest.guestId'
+    - 'guest.guestFamily'
+    - 'guest.hostName'
+    - 'config.uuid'
+    - 'config.instanceUuid'
+    - 'runtime.powerState'
+    - 'config.firmware'
+    - 'config.bootOptions.efiSecureBootEnabled'
+#filters:
+#  - guest.guestId is defined and (guest.guestId is match('rhel*') or guest.guestId is match('rocky*'))
+#  - runtime.powerState == "poweredOn"
+
+keyed_groups:
+  - key: guest.guestId
+    when: guest.guestId | lower | search('^(rhel|rocky|oraclelinux).*')
+
+#groups:
+#  per: "'per' in (guest.hostName | lower)"
+#  test: "'test' in (guest.hostName | lower)"

@@ -1,0 +1,45 @@
+---
+- name: Create a VM from a template
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+  - include_vars: roles/vmware_create/tasks/vars.yml
+  - name: Clone the template
+    vmware_guest:
+      hostname: "{{ host }}"
+      username: "{{ uname }}"
+      password: "{{ pword }}"
+      validate_certs: False
+      
+      name: "{{ item.name }}"
+      
+      networks:
+        - name: Static IP Assignment
+          #name: dvPG-Linux-Services-413  
+          name: dvPG-SitLinuxServers-443 
+          ip: "{{ item.ip }}"
+          netmask: "255.255.255.0" 
+          gateway: 10.0.0.1
+          domain: example.com
+          start_connected: True
+          device_type: vmxnet3
+ 
+      template: rocky-93-minimal
+      #template: rhel92_minimal_template
+      datastore: PURE_ESXI_Prod_LinuxApp_DS08_New
+      datacenter: Example Dev Data Center
+      #datacenter: Example DC
+      cluster: Lower Env Linux App Services EVC
+      #cluster: Prod Linux App Services EVC
+      #folder: "All Virtual Machines/Development/Linux/DEV" 
+      folder: "All Virtual Machines/Templates/Linux" 
+      #folder: "Production Linux/" 
+      state: poweredon
+      customization:
+        hostname: "{{ item.name }}"
+        dns_servers: 
+          - 10.0.0.1
+          - 10.0.0.1
+
+    with_items: "{{ servers }}"  

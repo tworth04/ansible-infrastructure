@@ -1,0 +1,51 @@
+---
+- hosts: '{{target|default("all")}}'
+#  gather_facts: false 
+#  remote_user: ansible-user
+  ignore_errors: true
+  become: true
+  serial: 50 
+  module_defaults:    
+    package:
+      disable_gpg_check: "{{ value_for_gpg | default(omit) }}"
+
+
+  roles:
+    - role: vmware_create
+      tags: [ vmware, deploy, create, newvm]
+    - role: register_with_satellite
+      tags: [satellite, baseline, create, newvm]
+    - role: common
+      tags: [ common, baseline, newvm, config]
+    - role: sssd
+      tags: [ sssd, baseline, newvm, config ]
+    - role: patching
+      tags: [ patching, baseline, updates, newvm]
+    - role: mysql
+      tags: [ mysql, mariadb, sql]
+    - role: redis
+      tags: [ redis, redisdb ]
+    - role: nodejs
+      tags: [nodejs, npm]
+    - role: webservers
+      tags: [apache, httpd, http, php,php-fpm, web]
+#    - role: splunk
+#      tags: [ splunk, baseline, monitoring]
+    - role: bigfix
+      tags: [ bigfix, baseline, monitoring, newvm]
+    - role: xdrc
+      tags: [ xdrc, baseline, monitoring, newvm]
+    - role: xdr
+      tags: [ xdr, baseline, cortex, monitoring, newvm]
+    - role: zabbix
+      tags: [ zabbix, baseline, monitoring, newvm, config]
+    - role: tanium
+      tags: [ tanium, baseline, monitoring, newvm]
+    - role: sonarqube
+      tags: [ never, sonar]
+    - role: qualys
+      tags: [ qualys, baseline, monitoring, newvm]
+    - role: cis 
+      tags: [ never, cis, rhel8cis, rhel9cis, baseline]
+#    - role: dynamic_storage_expand
+#      tags: [ storage, lvm, expand ]

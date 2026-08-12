@@ -1,0 +1,144 @@
+---
+# --------------------------------------------------------------------
+# 1️⃣  System subscription / housekeeping
+# --------------------------------------------------------------------
+- name: Refresh subscription
+  ansible.builtin.command:
+    cmd: subscription-manager refresh
+    executable: /bin/bash
+  become: true
+
+- name: Clean yum cache
+  ansible.builtin.command:
+    cmd: yum clean all
+  become: true
+
+# --------------------------------------------------------------------
+# 2️⃣  Rocky‑specific repo cleanup
+# --------------------------------------------------------------------
+- name: Find Rocky repo files
+  ansible.builtin.find:
+    paths: /etc/yum.repos.d
+    patterns: "rocky*.repo"
+  register: rocky_repo_files
+  when: ansible_facts.distribution == "Rocky"
+
+- name: Remove Rocky repo files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ rocky_repo_files.files }}"
+  when: rocky_repo_files.matched > 0
+  become: true
+
+# --------------------------------------------------------------------
+# 3️⃣  SSH / sudo housekeeping
+# --------------------------------------------------------------------
+- name: Remove cloud‑init sshd config (if present)
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d/50-cloud-init.conf
+    state: absent
+  become: true
+
+- name: Install (or update) lx‑admin sudoers file
+  ansible.builtin.copy:
+    src: files/lx-admin
+    dest: /etc/sudoers.d/lx-admin
+    owner: root
+    group: root
+    mode: "0440"
+    force: true
+  become: true
+
+# --------------------------------------------------------------------
+# 4️⃣  Un‑install any local Ansible and package housekeeping
+# --------------------------------------------------------------------
+- name: Remove local Ansible installation
+  ansible.builtin.yum:
+    name: ansible*
+    state: absent
+  become: true
+
+# --------------------------------------------------------------------
+# 5️⃣  System update – rebuild RPM‑DB only on corrupt‑DB failures
+# --------------------------------------------------------------------
+- name: Attempt system update (rebuild RPM‑DB only if needed)
+  block:
+    # 5a. RHEL 8/9 (RedHat or Rocky)
+    - name: Install base packages for RHEL 8/9
+      ansible.builtin.yum:
+        name: "{{ packages_redhat }}"
+        state: latest
+        disable_gpg_check: true
+      become: true
+      when: ansible_facts.distribution_major_version | int in [8, 9]
+
+    # 5b. RHEL 7
+    - name: Install base packages for RHEL 7
+      ansible.builtin.yum:
+        name: "{{ packages_rhel7 }}"
+        state: latest
+        disable_gpg_check: true
+      become: true
+      when: ansible_facts.distribution_major_version | int == 7
+
+  rescue:
+    # 5c. Yum failed – check for corrupt‑DB symptoms
+    - name: "Debug yum failure ({{ yum_update | default('no error captured') }})"
+      ansible.builtin.debug:
+        msg: "{{ yum_update | default('no error captured') }}"
+
+    - name: Rebuild RPM database if a corrupt‑DB error is detected
+      ansible.builtin.command:
+        cmd: rpmdb --rebuilddb
+      become: true
+      when: >
+        yum_update is failed and
+        (
+          ('rpmdb' in (yum_update.stderr | default('')).lower()) or
+          ('cannot read package database' in (yum_update.stderr | default('')).lower()) or
+          ('corrupted' in (yum_update.stderr | default('')).lower())
+        )
+
+    # 5d. Retry the update after rebuilding
+    - name: Retry system update (post‑rebuild)
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+        disable_gpg_check: true
+      become: true
+      register: yum_retry
+      failed_when: yum_retry.rc != 0
+      when: yum_update is failed
+
+# --------------------------------------------------------------------
+# 6️⃣  MySQL / MariaDB handling
+# --------------------------------------------------------------------
+- name: Check for MySQL data directory
+  ansible.builtin.stat:
+    path: /var/lib/mysql
+  register: mysql_present
+
+- name: Import MySQL tasks if MySQL is present
+  ansible.builtin.import_tasks: mysql.yml
+  when: mysql_present.stat.exists
+
+# --------------------------------------------------------------------
+# 7️⃣  Auditd log‑rotation policy
+# --------------------------------------------------------------------
+- name: Ensure auditd rotates logs (not just keeps them)
+  ansible.builtin.lineinfile:
+    path: /etc/audit/auditd.conf
+    regexp: '^max_log_file_action\s*='
+    line: "max_log_file_action = ROTATE"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
+- name: Restart auditd so new policy takes effect
+  ansible.builtin.systemd:
+    name: auditd
+    state: restarted
+    enabled: true
+  become: true

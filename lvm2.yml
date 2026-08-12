@@ -1,0 +1,16 @@
+---
+- hosts: '{{target|default("all")}}'
+#  gather_facts: false 
+  ignore_errors: true
+  become: true
+  serial: 50
+
+  tasks:
+    - name: Modify the file permissions
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - /mnt/diag
+        - /mnt/solr-home
+        - /mnt/logs

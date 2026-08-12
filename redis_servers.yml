@@ -1,0 +1,30 @@
+---
+- hosts: '{{target|default("all")}}'
+#  gather_facts: false 
+  ignore_errors: true
+  become: true
+  serial: 50
+#  vars_prompt:
+#    - name: hphostname
+#      prompt: "Please Input Hostname"
+#      private: no
+#      default: ''
+  roles:
+    - role: register_with_satellite
+      tags: [satellite, baseline]
+    - role: common
+      tags: [ common, baseline]
+    - role: sssd
+      tags: [ sssd, baseline ]
+    - role: patching
+      tags: [ patching, updates]
+    - role: redis
+      tags:  redis 
+    - role: xdr
+      tags: [ xdr, baseline, cortex, monitoring]
+    - role: zabbix
+      tags: [ zabbix, baseline, monitoring]
+    - role: tanium
+      tags: [ tanium, baseline, monitoring]
+    - role: qualys
+      tags: [ qualys, baseline, monitoring]

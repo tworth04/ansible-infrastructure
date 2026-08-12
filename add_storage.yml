@@ -1,0 +1,63 @@
+- name: Add storage and grow partition dynamically
+  hosts: all
+  serial: 20
+  gather_facts: true
+  become: true
+
+  vars:
+    expansion_threshold_gb: 2.0
+    expansion_size_gb: 2
+
+  tasks:
+
+    - name: Filter volume groups needing expansion
+      set_fact:
+        vgs_needing_expansion: >-
+          {{
+            ansible_lvm.vgs
+            | dict2items
+            | selectattr('value.free_g', 'defined')
+            | selectattr('value.free_g', 'float')
+            | select('lt', expansion_threshold_gb)
+            | list
+          }}
+
+    - name: Skip host if no VG needs expansion
+      meta: end_host
+      when: vgs_needing_expansion | length == 0
+
+    - name: Show volume groups needing expansion
+      debug:
+        var: vgs_needing_expansion
+
+    - name: Map volume groups to their physical volumes
+      set_fact:
+        vg_pv_map: >-
+          {{
+            ansible_lvm.pvs
+            | dict2items
+            | groupby('value.vg')
+            | items2dict
+          }}
+
+    - name: Build list of VG-PV pairs needing expansion
+      set_fact:
+        vg_pv_pairs: >-
+          {{
+            vgs_needing_expansion
+            | map(attribute='key')
+            | map('extract', vg_pv_map)
+            | map('first')
+            | zip(vgs_needing_expansion | map(attribute='key'))
+            | map('reverse')
+            | list
+          }}
+
+    - name: Loop through VG-PV pairs and expand each
+      include_tasks: expand_single_vg.yml
+      loop: "{{ vg_pv_pairs }}"
+      loop_control:
+        label: "{{ item.0 }}"
+      vars:
+        selected_vg: "{{ item.0 }}"
+        selected_pv: "{{ item.1 }}"

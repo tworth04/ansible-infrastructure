@@ -1,0 +1,102 @@
+---
+# tasks file for os_update
+
+- name: check if host is online
+  include_tasks: ping.yml
+
+- name: Define rhelAll fact dummy
+  set_fact:
+    ansible_distribution_combine: dummy
+
+- name: Create rhelAll fact if needed when AlmaLinux, Rocky, RHEL
+  set_fact:
+    ansible_distribution_combine: rhelAll
+  when: >
+    ansible_distribution == "AlmaLinux" or
+    ansible_distribution == "Rocky" or
+    ansible_distribution == "CentOS" or
+    ansible_distribution == "RedHat"    
+
+- name: fix ansible_python_interpreter, for Rocky and AlmaLinux, see lib/ansible/config/base.yml
+  block:
+  - name: change ansible_python_interpreter for rhelClone v9
+    set_fact:
+      ansible_python_interpreter: /usr/bin/python3
+    when: ansible_distribution_major_version|int == 9
+  - name: change ansible_python_interpreter for rhelClone v8
+    set_fact:
+      ansible_python_interpreter: /usr/libexec/platform-python
+    when: ansible_distribution_major_version|int == 8
+  when: >
+    ansible_distribution == "AlmaLinux" or
+    ansible_distribution == "Rocky"   
+
+- name: show variables
+  debug:
+    msg:
+      - ansible_distribution_major_version: "{{ ansible_distribution_major_version|d('undefined') }}"
+      - ansible_distribution: "{{ ansible_distribution|d('undefined') }}"
+      - ansible_os_family: "{{ ansible_os_family|d('undefined') }}"
+      - ansible_python_interpreter: "{{ ansible_python_interpreter|d('undefined') }}"
+      - os_update_level: "{{ os_update_level }}"
+      - os_update_level_default: "{{ os_update_level_default }}"
+      - os_update_reboot: "{{ os_update_reboot }}"
+      - os_update_reboot_default: "{{ os_update_reboot_default }}"
+      - os_update_remove_old_kernel: "{{ os_update_remove_old_kernel }}"
+      - os_update_remove_old_kernel_default: "{{ os_update_remove_old_kernel_default }}"
+      - os_update_keep_kernel_nr: "{{ os_update_keep_kernel_nr }}"
+      - os_update_keep_kernel_nr_default: "{{ os_update_keep_kernel_nr_default }}"
+  when: os_update_debug_vars
+
+# os_update_level: security,full
+# ansible_distribution: AlmaLinux, CentOS, Ubuntu, Fedora
+# ansible_distribution_major_version: 8, 7, 18, 32
+# ansible_os_family: RedHat, RedHat, Debian, RedHat
+
+- name: Upgrade OS Packages
+  include_tasks: '{{ patch_host }}'
+  with_first_found:
+    - files:
+        - '{{ os_update_level }}-{{ ansible_distribution_combine }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ os_update_level }}-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ os_update_level }}-{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml'
+        - '{{ os_update_level }}-{{ ansible_distribution_combine }}.yml'
+        - '{{ os_update_level }}-{{ ansible_distribution }}.yml'
+        - '{{ os_update_level }}-{{ ansible_os_family }}.yml'
+      errors: 'ignore'
+  loop_control:
+    loop_var: patch_host
+  when: os_update_level != 'none'
+
+- name: Reboot if needed/wanted
+  include_tasks: '{{ boot_host }}'
+  with_first_found:
+    - files:
+        - 'reboot-{{ ansible_distribution_combine }}-{{ ansible_distribution_major_version }}.yml'
+        - 'reboot-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - 'reboot-{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml'
+        - 'reboot-{{ ansible_distribution_combine }}.yml'
+        - 'reboot-{{ ansible_distribution }}.yml'
+        - 'reboot-{{ ansible_os_family }}.yml'
+      errors: 'ignore'
+  loop_control:
+    loop_var: boot_host
+  when: os_update_reboot
+
+- name: Cleanup old kernels
+  include_tasks: '{{ kernel_cleanup_host }}'
+  with_first_found:
+    - files:
+        - 'kernel-cleanup-{{ ansible_distribution_combine }}-{{ ansible_distribution_major_version }}.yml'
+        - 'kernel-cleanup-{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml'
+        - 'kernel-cleanup-{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml'
+        - 'kernel-cleanup-{{ ansible_distribution_combine }}.yml'
+        - 'kernel-cleanup-{{ ansible_distribution }}.yml'
+        - 'kernel-cleanup-{{ ansible_os_family }}.yml'
+      errors: 'ignore'
+  loop_control:
+    loop_var: kernel_cleanup_host
+  when: >
+    os_update_remove_old_kernel and 
+    os_update_reboot and 
+    os_update_level != 'none'
