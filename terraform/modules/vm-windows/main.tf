@@ -32,11 +32,15 @@ resource "vsphere_virtual_machine" "vm" {
   memory   = var.memory
   guest_id = data.vsphere_virtual_machine.template.guest_id
 
-  # The Packer template owns disk 0's base layout — size here only extends it.
+  # Disk 0 inherits size/provisioning from the template (pattern from
+  # vmware/packer-examples-for-vsphere, BSD-2-Clause) instead of forcing a
+  # fixed size — avoids "new size smaller than disk" clone failures. The
+  # Windows templates are typically 60-80GB, so a fixed 60 would fail.
   disk {
     label            = "disk0"
-    size             = var.disk_size
-    thin_provisioned = true
+    size             = var.disk_size > 0 ? var.disk_size : data.vsphere_virtual_machine.template.disks[0].size
+    thin_provisioned = data.vsphere_virtual_machine.template.disks[0].thin_provisioned
+    eagerly_scrub    = data.vsphere_virtual_machine.template.disks[0].eagerly_scrub
   }
 
   # Template ships VMware Tools + a vmxnet3 driver — the hardened NIC wins.
@@ -71,15 +75,18 @@ resource "vsphere_virtual_machine" "vm" {
       }
       ipv4_gateway    = var.gateway
       dns_server_list = var.dns_servers
+      dns_suffix_list = var.dns_suffixes
     }
   }
 
   # vCenter-owned attributes — ignore so day-2 ops (vmotion, annotations,
-  # hot-added disks) don't show as drift.
+  # re-pointing at a newer template build) don't show as drift. `disk` is
+  # deliberately NOT ignored — disk changes (grow, add data disk) SHOULD
+  # appear in plans. (Pattern from vmware/packer-examples-for-vsphere, BSD-2.)
   lifecycle {
     ignore_changes = [
       annotation,
-      disk,
+      clone[0].template_uuid,
     ]
   }
 }

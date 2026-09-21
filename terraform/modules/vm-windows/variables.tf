@@ -30,8 +30,9 @@ variable "memory" {
   type        = number
 }
 variable "disk_size" {
-  description = "Root disk GB — template disk is grown to this size"
+  description = "Root disk GB — 0 (default) inherits the template's disk size; >0 grows it"
   type        = number
+  default     = 0
 }
 
 variable "admin_password" {
@@ -70,4 +71,10 @@ output "vm_ip" {
 
 output "vm_id" {
   value = vsphere_virtual_machine.vm.id
+}
+
+variable "dns_suffixes" {
+  description = "DNS search suffixes passed to guest customization"
+  type        = list(string)
+  default     = []
 }
