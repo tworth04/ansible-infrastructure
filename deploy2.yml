@@ -42,7 +42,7 @@
 #        -  /webdata/Zend/ZendRoot/module/Refund/src/Refund/Form/RefundApprovalForm.php
         - /webdata/data
 #        - /webdata/W1
-#        - /webdata/svc
+#        - /webdata/example
 #        - /webdata/Zend/ZendRoot 
       register: backup_result
 

@@ -4,7 +4,7 @@
   gather_facts: no
   vars:
     vsphere_host: "vcenter-prod.example.com"
-    vsphere_user: "svc\vc_admin"
+    vsphere_user: "svc_ansible"
     vsphere_password: "{{ vault_vsphere_password }}"
     vsphere_datacenter: Example Dev
     bluecat_url: "https://bluecat.example.com/api/v1"

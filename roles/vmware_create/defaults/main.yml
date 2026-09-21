@@ -3,7 +3,7 @@
 #prod_host: vc01006.example.com
 #host: vcenter-prod.example.com
 host: vcenter-prod.example.com
-uname: svc\vc_admin
+uname: svc_ansible
 pword: "{{ vault_vsphere_password }}"
 #template: rocky-95-minimal
 template: rhel96-minimal

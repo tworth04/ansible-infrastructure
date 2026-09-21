@@ -5,7 +5,7 @@
   become: true
   serial: 50
 #  vars_prompt:
-#    - name: hphostname
+#    - name: target_hostname
 #      prompt: "Please Input Hostname"
 #      private: no
 #      default: ''

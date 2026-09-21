@@ -3,11 +3,11 @@
 
 #- name: Check if ip is a valid IP address
 #  ansible.builtin.set_fact:
-#    data: "{{ 'svc_ips' is ansible.utils.ip }}"
+#    data: "{{ 'example_ips' is ansible.utils.ip }}"
 
 - name: Checking ips 
   uri:
-    url: "{{ svc_uris }}"
+    url: "{{ example_uris }}"
     method: GET 
   register: web_check
 
