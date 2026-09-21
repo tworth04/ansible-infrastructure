@@ -14,7 +14,7 @@
 #     plugin v2.5.0 exposes `vbs_enabled = true` to attach a vTPM + enable
 #     virtualization-based security (the plugin rejects it unless
 #     firmware = "efi-secure", and it also forces `vvtd_enabled = true` and
-#     `NestedHV = true` (exact plugin arg name) — all three set below). The cluster's TPM
+#     `nested_hv_enabled = true` (exact plugin arg name) — all three set below). The cluster's TPM
 #     provisioning policy must allow key escrow/backup for vTPMs, or the VM
 #     can become unrecoverable after host maintenance.
 #
@@ -118,7 +118,7 @@ source "vsphere-iso" "windows-2025" {
 
   # Suffix with a build identifier so successive builds coexist instead of
   # colliding with the previous template.
-  vm_name       = "${var.win25_vm_name}-v${formatdate("YYYYMMDD-hhmm", timestamp())}"
+  vm_name       = "${var.win25_vm_name}"
   guest_os_type = var.win25_guest_os_type
 
   # Server 2025: UEFI + Secure Boot mandatory ("efi-secure" = EFI + secure
@@ -153,7 +153,7 @@ source "vsphere-iso" "windows-2025" {
   # The Windows ISO drops to "Press any key to boot from CD" — the spacebar
   # is the "any key" (reference repo's proven boot_command).
   boot_order = "disk,cdrom"
-  boot_wait  = "10s"
+  boot_wait  = "30s"
   boot_command = [
     "<spacebar>",
   ]

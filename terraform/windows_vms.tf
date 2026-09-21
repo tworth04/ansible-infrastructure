@@ -25,7 +25,7 @@ locals {
     #   # Point this VM at the Server 2025 golden image built by
     #   # ../packer/windows-server-2025.pkr.hcl (no module change needed —
     #   # guest customization overrides name/password either way):
-    #   template = "windows-2025-minimal"
+    #   template        = var.win25_template_name
     # }
   }
 }

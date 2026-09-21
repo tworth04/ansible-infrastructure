@@ -50,3 +50,14 @@ variable "win_default_disk_size" {
   type        = number
   default     = 120
 }
+
+variable "workgroup_name" {
+  type        = string
+  default     = "WORKGROUP"
+  description = "NetBIOS workgroup when join_domain = false (max 15 chars, no dots)."
+}
+
+variable "win25_template_name" {
+  type        = string
+  description = "Exact Windows Server 2025 template name as produced by Packer (versioned)."
+}

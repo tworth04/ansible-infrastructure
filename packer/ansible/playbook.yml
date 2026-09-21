@@ -30,12 +30,15 @@
     # TEMPLATE HYGIENE — the image must not carry unique machine identity.
     # ------------------------------------------------------------------
 
-    - name: Remove build-time packer user (credential must not ship)
+
+
+    - name: Lock build-time packer account (credential must not ship)
       ansible.builtin.user:
         name: packer
-        state: absent
-        remove: true
-      ignore_errors: true # removing our own ssh user mid-play is fine
+        password_lock: true
+      # NOT userdel: deleting our own SSH user mid-play kills the session
+      # before Packer's shutdown_command can run. A locked, keyless account
+      # is credential-neutral; day-2 provisioning removes it on first run.
 
     - name: Truncate /etc/machine-id (zero-length so first boot regenerates)
       ansible.builtin.copy:
@@ -74,3 +77,4 @@
 #     - role: common
 #     - role: cis
 # ----------------------------------------------------------------------
+

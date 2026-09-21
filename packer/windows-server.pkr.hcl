@@ -135,7 +135,7 @@ source "vsphere-iso" "windows" {
 
   # Suffix with a build identifier so successive builds coexist instead of
   # colliding with the previous template.
-  vm_name       = "${var.win_vm_name}-v${formatdate("YYYYMMDD-hhmm", timestamp())}"
+  vm_name       = "${var.win_vm_name}"
   guest_os_type = var.win_guest_os_type
 
   # BIOS firmware: boots on any ESXi host without vTPM. UEFI + vTPM are
@@ -166,7 +166,7 @@ source "vsphere-iso" "windows" {
   # The Windows ISO drops to "Press any key to boot from CD" — the spacebar
   # is the "any key" (reference repo's proven boot_command).
   boot_order = "disk,cdrom"
-  boot_wait  = "10s"
+  boot_wait  = "30s"
   boot_command = [
     "<spacebar>",
   ]

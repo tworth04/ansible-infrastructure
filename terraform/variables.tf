@@ -46,9 +46,11 @@ variable "vsphere_folder" {
 }
 
 variable "template_name" {
-  description = "Golden image built by ../packer (or an existing template)"
   type        = string
-  default     = "rocky-95-minimal"
+  # REQUIRED (no default): Packer stamps templates with a -v<YYYYMMDD-hhmm>
+  # suffix, so the exact name changes per build. Pass the name of the template
+  # you just built, e.g. "rocky-95-minimal-v20241219-1430".
+  description = "Exact vSphere template name as produced by Packer (versioned)."
 }
 
 variable "netmask" {

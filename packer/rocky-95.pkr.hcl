@@ -159,9 +159,9 @@ source "vsphere-iso" "rocky" {
   }
 
   boot_order = "disk,cdrom"
-  boot_wait  = "5s"
+  boot_wait  = "15s"
 
-  http_directory = "http"
+  http_content = { "/rocky-9.ks" = templatefile("${path.root}/http/rocky-9.ks.tftpl", { ssh_password = var.ssh_password }) }
 
   # Rocky/RHEL 9 GRUB: arrow the cursor into the install entry's line and
   # append the kickstart URL, forcing a text console (no graphical boot).
@@ -174,7 +174,7 @@ source "vsphere-iso" "rocky" {
   ssh_username     = var.ssh_username
   ssh_password     = var.ssh_password
   ssh_timeout      = "30m"
-  shutdown_command = "shutdown -h now"
+  shutdown_command = "sudo shutdown -h now"
 
   # The whole point: turn the built VM into a vSphere template.
   # (Plugin v2.x argument name: convert_to_template.)

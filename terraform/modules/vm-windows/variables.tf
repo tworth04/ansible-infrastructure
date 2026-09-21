@@ -78,3 +78,8 @@ variable "dns_suffixes" {
   type        = list(string)
   default     = []
 }
+
+variable "workgroup_name" {
+  type    = string
+  default = "WORKGROUP"
+}

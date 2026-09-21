@@ -15,7 +15,7 @@ rootpw --lock
 # Build-time-only credential, used solely so Packer can SSH in during the
 # build. The hardening playbook removes this user before the VM is
 # converted into a template — never ship it in the finished image.
-user --name=packer --password=*** --iscrypted=no --groups=wheel
+user --name=packer --password=${ssh_password} --iscrypted=no --groups=wheel
 
 bootloader --location=mbr --boot-drive=sda
 zerombr
@@ -36,3 +36,11 @@ open-vm-tools
 %post --log=/root/ks-post.log
 dnf clean all
 %end
+
+# Packer needs to issue 'shutdown -h now' as the packer user over SSH.
+# Wheel is not passwordless by default on Rocky; grant shutdown-only sudo.
+mkdir -p /etc/sudoers.d
+cat > /etc/sudoers.d/packer-shutdown <<'SUDO'
+packer ALL=(root) NOPASSWD: /usr/sbin/shutdown
+SUDO
+chmod 0440 /etc/sudoers.d/packer-shutdown

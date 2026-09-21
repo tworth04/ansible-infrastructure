@@ -61,7 +61,7 @@ resource "vsphere_virtual_machine" "vm" {
       windows_options {
         computer_name  = "${var.prefix}-${var.role}"
         admin_password = var.admin_password
-        workgroup      = var.domain # workgroup unless joining a domain below
+        workgroup        = var.workgroup_name
 
         # Domain join — flip join_domain in the map entry and supply the
         # service creds (sensitive tfvars, never committed):

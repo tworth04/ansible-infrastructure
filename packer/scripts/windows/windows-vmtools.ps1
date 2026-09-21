@@ -100,7 +100,7 @@ if ($vmToolsInstalled) {
   Write-Output "$VMToolsName is not installed. Proceeding with installation..."
 }
 
-if (-not (Install-VMTools -SetupPath $SetupPath -Arguments '/s /v "/qb REBOOT=R"')) {
+if (-not (Install-VMTools -SetupPath $SetupPath -Arguments '/s /v "/qb REBOOT=ReallySuppress"')) {
   Write-Error "Failed to install $VMToolsName"
 } else {
   Write-Output "$VMToolsName installed successfully."
