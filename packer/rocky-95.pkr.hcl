@@ -167,7 +167,7 @@ source "vsphere-iso" "rocky" {
   # append the kickstart URL, forcing a text console (no graphical boot).
   boot_command = [
     "<up><wait><enter><wait>",
-    " inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rocky-9<enter><wait5>",
+    " inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rocky-9.ks<enter><wait5>",
   ]
 
   communicator     = "ssh"
