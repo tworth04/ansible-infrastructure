@@ -10,5 +10,5 @@
       register: command_output
 
     - name: Give output
-      debug:
+      ansible.builtin.debug:
         var: command_output.stdout

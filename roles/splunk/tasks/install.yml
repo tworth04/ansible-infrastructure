@@ -11,12 +11,12 @@
   command: 'pgrep -f splunk|xargs kill -9'
 
 - name: Send Spunk to /tmp on "{{ ansible_hostname }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ splunk_rpm }}"
     dest: /tmp/{{ splunk_rpm }}
 
 - name: Create directory structure if not present
-  file:
+  ansible.builtin.file:
     path: "{{ splunk_home }}"
     state: directory
     mode: '0755'
@@ -24,12 +24,12 @@
     group: splunkfwd
 
 - name: Copy Systemd service file
-  copy:
+  ansible.builtin.copy:
     src: "{{ splunk_service }}"
     dest: /etc/systemd/system/splunkd.service
 
 - name: Install Splunk 
-  yum:
+  ansible.builtin.dnf:
     name: /tmp/{{ splunk_rpm }}
     state: present
     disable_gpg_check: true
@@ -37,7 +37,7 @@
   poll: 5
 
 - name: Create Systemd service
-  copy:
+  ansible.builtin.copy:
     src: files/splunkd.service
     dest: /etc/systemd/system/splunkd.service
 
@@ -60,7 +60,7 @@
     enabled: true
     force: true
       
-- include_tasks: config.yml
+- ansible.builtin.include_tasks: config.yml
 
 - name: Restart Splunk service
   ansible.builtin.systemd_service:

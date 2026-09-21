@@ -10,4 +10,4 @@
     state: powered_on
   until: vm_creation_result is succeeded and vm_powerstate == "poweredOn"
 
-- include_tasks: assign_ip.yml
+- ansible.builtin.include_tasks: assign_ip.yml

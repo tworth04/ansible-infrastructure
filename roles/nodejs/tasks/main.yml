@@ -3,7 +3,7 @@
   command: yum module enable nodejs:22 -y
 
 - name: Install nodejs
-  yum:
+  ansible.builtin.dnf:
     name: nodejs
     state: latest
     disable_gpg_check: true
@@ -30,7 +30,7 @@
     mode: '0644'
 
 - name: Install Docker CE packages
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name:
       - docker-ce
       - docker-ce-cli

@@ -6,7 +6,7 @@
   become: true
   serial: 50 
   module_defaults:    
-    package:
+    ansible.builtin.package:
       disable_gpg_check: "{{ value_for_gpg | default(omit) }}"
 
 

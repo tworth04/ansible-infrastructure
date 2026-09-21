@@ -102,7 +102,7 @@
   when: authselect_current_profile.stdout is defined
 
 - name: Determine base profile to use
-  set_fact:
+  ansible.builtin.set_fact:
     desired_base_profile: >-
       {% if 'samba-winbind' in ansible_facts.packages or 'samba-winbind-clients' in ansible_facts.packages %}
         winbind

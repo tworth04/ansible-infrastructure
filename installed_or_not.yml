@@ -7,36 +7,36 @@
   tasks:
 
     - name: Check if Tainium is installed
-      stat:
+      ansible.builtin.stat:
         path: /opt/Tanium
       register: register_tanium
 
     - name: Check if Cortex installed correctly
-      stat:
+      ansible.builtin.stat:
         path: /opt/traps
       register: register_traps
 
     - name: Check if Cortex installed correctly
-      stat:
+      ansible.builtin.stat:
         path: /opt/splunkforwarder
       register: register_splunk
 
     - name: Check if Cortex installed correctly
-      stat:
+      ansible.builtin.stat:
         path: /opt/tivoli
       register: register_tivoli
 
-    - debug:
+    - ansible.builtin.debug:
         var: register_traps 
       when: not register_traps.stat.exists
       register: no_traps
 
-    - debug:
+    - ansible.builtin.debug:
         var: register_splunk
       when: not register_splunk.stat.exists
       register: no_splunk
 
-    - debug:
+    - ansible.builtin.debug:
         var: register_tivoli
       when: not register_tivoli.stat.exists
       register: no_tivoli
@@ -65,7 +65,7 @@
 #        host: smtprelay.example.com
 #        port: 25
 #        to:
-#        - Steve Example <steven.example@example.com>
+#        - Steve Example <colleague1@example.com>
 #        cc:
 #        - Travis Worth <travis.worth@example.com>
 #        subject: services installed 

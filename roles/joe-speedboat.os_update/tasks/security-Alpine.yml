@@ -1,6 +1,6 @@
 ---
 - name: perform full os upgrade because Alpine can not filter security patches
-  apk:
+  community.general.apk:
     update_cache: true
     upgrade: true
 ...

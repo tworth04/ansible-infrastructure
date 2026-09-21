@@ -1,11 +1,11 @@
 ---
 - name: Update cache
-  apt: 
+  ansible.builtin.apt: 
     update_cache: true
   changed_when: false
 
 - name: Install security updates
-  shell: |
+  ansible.builtin.shell: |
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get -s dist-upgrade | grep '^Inst' | grep -i -- '-security ' | awk '{print $2}' | xargs apt-get install

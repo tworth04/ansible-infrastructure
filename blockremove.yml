@@ -6,17 +6,17 @@
 
   tasks:
     - name: Gather package info
-      service_facts:
+      ansible.builtin.service_facts:
 
     - name: Remove Block
-      blockinfile:
+      ansible.builtin.blockinfile:
         path: /etc/php-fpm.d/www.conf
         marker: "# {mark} ANSIBLE MANAGED BLOCK"
         block: "" 
       when: "'php-fpm.service' in services" 
       
     - name: restart php-fpm
-      systemd_service:
+      ansible.builtin.systemd_service:
         name: php-fpm
         state: restarted
       when: "'php-fpm.service' in services"  

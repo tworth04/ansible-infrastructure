@@ -3,17 +3,17 @@
   hosts: localhost
   gather_facts: false
   vars:
-    - input_inventory_file_yml: "/etc/ansible/dev_inventory2.yml"
-    - output_inventory_file_ini: "/etc/ansible/lower_dev.ini"
+    input_inventory_file_yml: "/etc/ansible/dev_inventory2.yml"
+    output_inventory_file_ini: "/etc/ansible/lower_dev.ini"
 
   tasks:
 
     - name: Convert inventory to INI format
-      set_fact:
+      ansible.builtin.set_fact:
         ini_inventory: "{{ input_inventory_file_yml | inventory_to_ini }}"
 
     - name: Write static inventory to file
-      copy:
+      ansible.builtin.copy:
         content: "{{ ini_inventory }}"
         dest: "{{ output_inventory_file_ini }}"
 

@@ -1,24 +1,24 @@
 ---
 
 - name: Send BigFix to /tmp on "{{ ansible_hostname }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ bigfix_rpm }}"
     dest: /tmp/{{ bigfix_rpm }}
 
 - name: Create directory structure if not present
-  file:
+  ansible.builtin.file:
     path: /opt/BESClient
     state: directory
     mode: '0755'
 
 - name: Create directory structure if not present
-  file:
+  ansible.builtin.file:
     path: /etc/opt/BESClient
     state: directory
     mode: '0755'
 
 - name: Copy Conf file to /etc/opt/BESClient
-  copy:
+  ansible.builtin.copy:
     src: "{{ bigfix_config }}"
     dest: /etc/opt/BESClient/{{ bigfix_config }}
 
@@ -26,7 +26,7 @@
 #  command: rpm -i /tmp/{{ bigfix_rpm }}
 
 - name: Install BigFix 
-  yum:
+  ansible.builtin.dnf:
     name: /tmp/{{ bigfix_rpm }}
     state: present
     disable_gpg_check: true

@@ -1,9 +1,9 @@
 ---
 - name: Gather package info
-  service_facts:
+  ansible.builtin.service_facts:
 
 - name: Check if Zabbix is installed
-  stat:
+  ansible.builtin.stat:
     path: /etc/zabbix
   register: register_zabbix
 
@@ -21,7 +21,7 @@
 #  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] != "9"
 
 #- name: Install the latest version of Zabbix Agent
-#  ansible.builtin.yum:
+#  ansible.builtin.dnf:
 #    name: zabbix-agent2
 #    enablerepo: Exampleservices_Zabbix_zabbix7_rhel_{{ ansible_distribution_major_version }}
 #    state: latest
@@ -36,7 +36,7 @@
     force: true
 
 - name: Check if mysql is installed
-  stat:
+  ansible.builtin.stat:
     path: /var/lib/mysql
     #path: /usr/lib/systemd/system/mysqld.service
   register: register_mysql
@@ -93,7 +93,7 @@
 #  when: ansible_facts.services['httpd.service'].state == 'running'
 
 - name: Remove Block
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: /etc/php-fpm.d/www.conf
     marker: "# {mark} ANSIBLE MANAGED BLOCK "
     block: ""
@@ -153,7 +153,7 @@
 
 
 - name: Restart Zabbix Agent
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: zabbix-agent2
     state: restarted
     enabled: true

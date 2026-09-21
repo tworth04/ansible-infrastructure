@@ -12,7 +12,7 @@
 
 
     - name: create a reboot group
-      group_by:
+      ansible.builtin.group_by:
         key: requires_reboot
       when: yum_update_output.rc == 100
 
@@ -21,13 +21,13 @@
 #        programming_languages: "{{ pending_updates + {{ groups['requires_reboot'] }} }}"
 
     - name: create a text file with my list of servers
-      copy:
+      ansible.builtin.copy:
         content: |
           {{ groups['requires_reboot'] }}
         dest: /tmp/reboot_list.txt
       delegate_to: localhost
 
-    - debug:
+    - ansible.builtin.debug:
         var: groups['requires_reboot']
       run_once: true
 
@@ -36,10 +36,10 @@
         host: smtprelay.example.com
         port: 25
         to:
-        - Steve Example <steven.example@example.com>
+        - Steve Example <colleague1@example.com>
         cc:
         - Travis Worth <travis.worth@example.com>
-        - Adam Example <adam.example@example.com>
+        - Adam Example <colleague2@example.com>
         subject: Yum Update Status
         body: "{{ lookup('file', '/tmp/reboot_list.txt') }}" 
 #        body: See attached file for pending servers needing updates.

@@ -6,7 +6,7 @@
   when: ansible_facts.services['winbind.service'].state == 'running'
 
 - name: ensure winbind is enabled when running 
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: winbind
     state: restarted
     enabled: true

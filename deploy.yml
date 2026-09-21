@@ -7,7 +7,7 @@
   tasks:
   
     - name: Create directories for runapi 
-      file:
+      ansible.builtin.file:
         state: directory
         recurse: yes
         owner: runapi

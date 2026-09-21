@@ -1,7 +1,7 @@
 ---
 
 - name: "5.1.1.1 | PATCH | Ensure rsyslog installed"
-  yum:
+  ansible.builtin.dnf:
       name: rsyslog
       state: present
   timeout: 30

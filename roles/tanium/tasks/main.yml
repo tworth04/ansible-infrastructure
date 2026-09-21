@@ -1,7 +1,7 @@
 ---
 
 - name: Check if Tainium is installed 
-  stat:
+  ansible.builtin.stat:
     path: /opt/Tanium
   register: register_tanium
 
@@ -22,7 +22,7 @@
   command: yum --setopt=tsflags=noscripts remove TaniumClient -y
 
 - name: Remove Tanium
-  yum:
+  ansible.builtin.dnf:
     name: TaniumClient 
     state: absent
     #disable_gpg_check: true
@@ -31,7 +31,7 @@
   poll: 5
 
 - name: Remove Tanium Folder
-  file:
+  ansible.builtin.file:
     path: /opt/Tanium
     state: absent
 
@@ -42,7 +42,7 @@
 #  tags: install
 
 - name: Install the correct tanium agent2 for RHEL
-  include_tasks: rhel8.yml
+  ansible.builtin.include_tasks: rhel8.yml
     #  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "8" not register_traps.stat.exists
   when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "8"
 #  tags: install

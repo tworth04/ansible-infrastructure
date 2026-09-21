@@ -1,6 +1,6 @@
 ---
 - name: Install PHP-FPM and Apache 
-  yum:
+  ansible.builtin.dnf:
     name: "{{ web_services }}"
     state: latest
 

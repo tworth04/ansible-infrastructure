@@ -15,7 +15,7 @@
 #    vcenter_hostname: "{% if item starts with 'dev' or item starts with 'qua' or item starts with 'sit' or item starts with 'turn' %}vcenter-prod.example.com{% else %}vc01006.example.com{% endif %}"
 #    run_once: yes
 
-- include_tasks: create.yml
+- ansible.builtin.include_tasks: create.yml
 
 #- name: remove previous dev dynamic inventory cache file
 #  file:
@@ -23,10 +23,9 @@
 #    state: absent
 
 - name: remove previous prod dynamic inventory cache file
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: absent
-  with_fileglob:
-    - "/etc/ansible/facts.d/*/ansible_inventory_community*"
+  loop: "{ q('fileglob', '/etc/ansible/facts.d/*/ansible_inventory_community*') }"
 
-- include_tasks: update_inventory.yml
+- ansible.builtin.include_tasks: update_inventory.yml

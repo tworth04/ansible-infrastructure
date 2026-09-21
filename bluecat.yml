@@ -15,7 +15,7 @@
 
   tasks:
     - name: Connect to vSphere and retrieve assigned IP addresses
-      vmware_guest_info:
+      community.vmware.vmware_guest_info:
         hostname: "{{ vsphere_host }}"
         username: "{{ vsphere_user }}"
         password: "{{ vsphere_password }}"
@@ -25,7 +25,7 @@
         validate_certs: False
       register: vm_info
 
-    - debug:
+    - ansible.builtin.debug:
         var: vm_info.virtual_machines
 
 #    - name: Extract IP addresses from vSphere guests
@@ -42,11 +42,11 @@
       register: bc_info
 
     - name: Extract BlueCat IP addresses and DNS configurations
-      set_fact:
+      ansible.builtin.set_fact:
         bc_ips_and_dns: "{{ bc_info.ip_list | map(attribute='ipAddress') | list }}"
 
     - name: Compare vSphere and BlueCat IP addresses
-      set_fact:
+      ansible.builtin.set_fact:
         discrepancies: "{{ vsphere_ips | difference(bc_ips_and_dns) + bc_ips_and_dns | difference(vsphere_ips) }}"
 
     - name: Extract DNS configurations for discrepancies from BlueCat
@@ -61,14 +61,14 @@
       loop: "{{ discrepancies | list }}"
 
     - name: Prepare potential issues for network administrators
-      set_fact:
+      ansible.builtin.set_fact:
         potential_issues: []
       vars:
         bc_dns_info_dict: "{{ dict(bc_dns_info.results | map(attribute='item') | zip(bc_dns_info.results | map(attribute='ansible_facts')) }}"
       loop: "{{ discrepancies | list }}"
 
     - name: Add potential issues to the list
-      set_fact:
+      ansible.builtin.set_fact:
         potential_issues: "{{ potential_issues + [ {
             'ip': item,
             'vsphere_configured': 'yes' if item in vsphere_ips else 'no',
@@ -81,6 +81,6 @@
         } for item in discrepancies] }}"
 
     - name: Display discrepancies and potential issues
-      debug:
+      ansible.builtin.debug:
         msg: "{{ item }}"
       loop: "{{ potential_issues | reject('failed') }}"

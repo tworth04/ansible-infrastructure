@@ -7,7 +7,7 @@
 
   tasks:
     - name: Modify the file permissions
-      file:
+      ansible.builtin.file:
         path: "{{ item }}"
         state: directory
       loop:

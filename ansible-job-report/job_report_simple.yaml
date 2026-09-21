@@ -18,7 +18,7 @@
     - name: Create output folder
       run_once: yes
       delegate_to: localhost
-      file:
+      ansible.builtin.file:
         path: "{{ outdir }}"
         state: directory
     
@@ -27,7 +27,7 @@
     # Add your own tasks here! #
     
     - name: Run a command and save the results
-      command:
+      ansible.builtin.command:
         cmd: echo "This is output from command 1."
       register: cmd1_results
   
@@ -37,7 +37,7 @@
       delegate_to: localhost
       delegate_facts: True
       run_once: yes
-      set_fact:
+      ansible.builtin.set_fact:
         date_str: "{{ date }}_{{ hms }}"
         date_str_pretty: "{{ date }} {{ hms_pretty }}" 
         success_list: "{{ ansible_play_hosts }}"
@@ -52,7 +52,7 @@
       delegate_to: localhost
       delegate_facts: True
       run_once: yes
-      copy:
+      ansible.builtin.copy:
         content: |
           <html>
           <body>

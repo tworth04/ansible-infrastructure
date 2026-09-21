@@ -1,6 +1,6 @@
 ---
 - name: perform full os upgrade
-  apk:
+  community.general.apk:
     update_cache: true
     upgrade: true
 ...

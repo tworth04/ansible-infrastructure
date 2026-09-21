@@ -1,6 +1,6 @@
 ---
 - name: perform full os upgrade
-  dnf:
+  ansible.builtin.dnf:
     name: "*"
     state: latest
 

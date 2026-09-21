@@ -1,51 +1,51 @@
 ---
 
 - name: Get all disks from existing VM
-  vmware_guest_disk_info:
+  community.vmware.vmware_guest_disk_info:
     validate_certs: False
     datacenter: '{{ data_center }}'
     name: '{{ vm_name  }}'
   register: existing_disk
 
 - name: Get Backing datastore for desired disk id
-  set_fact:
+  ansible.builtin.set_fact:
     disk_zero_datastore: "{{ item.value.backing_datastore }}"
-  with_dict: "{{ existing_disk.guest_disk_info }}"
+  loop: "{ {{ existing_disk.guest_disk_info }} | dict2items }"
   when: item.key == '0'
 
-- debug:
+- ansible.builtin.debug:
     msg: "{{ disk_zero_datastore }}"
   when: disk_zero_datastore is defined
 
 - name: Get scsi controller type
-  set_fact:
+  ansible.builtin.set_fact:
     scsi_type: "{{ item.value.controller_type }}"
-  with_dict: "{{ existing_disk.guest_disk_info }}"
+  loop: "{ {{ existing_disk.guest_disk_info }} | dict2items }"
   when: item.key == '0'
 
-- debug:
+- ansible.builtin.debug:
     msg: '{{ scsi_type }}'
   when: scsi_type is defined
 
 
 - name: Get Unit Number
-  set_fact:
+  ansible.builtin.set_fact:
     unit_number: "{{ item.value.unit_number }}"
-  with_dict: "{{ existing_disk.guest_disk_info }}"
+  loop: "{ {{ existing_disk.guest_disk_info }} | dict2items }"
   when: item.key == '0'
 
-- debug:
+- ansible.builtin.debug:
     msg: '{{ unit_number }}'
   when: unit_number is defined
 
 
 - name: Get Disk + 30%
-  set_fact:
+  ansible.builtin.set_fact:
     disc_size: "{{ item.value.capacity_in_kb|int *13/10| round(2, 'floor')|int }}"
-  with_dict: "{{ existing_disk.guest_disk_info }}"
+  loop: "{ {{ existing_disk.guest_disk_info }} | dict2items }"
   when: item.key == '0'
   
-- debug:
+- ansible.builtin.debug:
     msg: '{{ disc_size }}'
   when: disc_size is defined
 
@@ -80,12 +80,12 @@
 
 
 - name: Extend the logical volume to take all remaining space of the PVs and resize the underlying filesystem
-  lvol:
+  community.general.lvol:
     vg: "{{ lvm_group }}"
     lv: "{{ item.name }}"
     size: 100%PVS
     resizefs: true
-  with_items:
+  loop:
    "{{ lvm_volumes }}"
 
 - name: Create a volume group on top of /dev/sda3 and resize the volume group /dev/sda3 to the maximum possible

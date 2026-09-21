@@ -7,12 +7,12 @@
   tasks:
   
     - name: Delete content & directory
-      file:
+      ansible.builtin.file:
         state: absent
         path: /webdata/W1/W1_Services/W1_PublicVW/ApplicationVW/UnderwritingVW/docucorp/
         
     - name: Ensure the directory /path/to/your/directory exists
-      file:
+      ansible.builtin.file:
         path: "{{ item }}"
         state: directory
         mode: '0755' # Optional: set the permissions for the directory (e.g., rwxr-xr-x)

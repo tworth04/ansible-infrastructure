@@ -1,19 +1,19 @@
 ---
 
 - name: Send zabbix agent2 for el7 to /tmp on "{{ ansible_host }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ zabbix_agent2_rpm_el7 }}"
     dest: /tmp/zabbix_agent2.rpm
   when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "7"
 
 - name: Send zabbix agent2 for el8 to /tmp on "{{ ansible_host }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ zabbix_agent2_rpm_el8 }}"
     dest: /tmp/zabbix_agent2.rpm
   when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "8"
 
 - name: Send zabbix agent2 for el9 to /tmp on "{{ ansible_host }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ zabbix_agent2_rpm_el9 }}"
     dest: /tmp/zabbix_agent2.rpm
   when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution_major_version'] == "9"
@@ -23,7 +23,7 @@
 #  async: 20
 
 - name: Remove old agent
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name: zabbix-agent
     state: absent
     disable_gpg_check: true
@@ -33,7 +33,7 @@
 
 - name: Install agent
   command: rpm -iU --nosignature /tmp/zabbix_agent2.rpm
-#  ansible.builtin.yum:
+#  ansible.builtin.dnf:
 #    name: /tmp/zabbix_agent2.rpm
 #    state: latest
 #    disable_gpg_check: true

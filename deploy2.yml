@@ -28,7 +28,7 @@
 
 
     - name: Backups for {{ item }} on {{ ansible_host }}
-      archive:
+      community.general.archive:
         path: "{{ item }}"
         dest: "{{ item }}.{{ansible_date_time.date}}.tar.gz"
         owner: webmaster
@@ -47,5 +47,5 @@
       register: backup_result
 
     - name: Report backup results
-      debug:
+      ansible.builtin.debug:
         var: backup_result

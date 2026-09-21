@@ -1,11 +1,11 @@
 ---
 - name: Install MariaDB
-  yum:
+  ansible.builtin.dnf:
     name: "{{ mariadb_rocky }}"
     state: latest
 
 - name: Start and Enable Mariadb 
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: mariadb
     state: started
     enabled: true

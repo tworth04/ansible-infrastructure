@@ -21,7 +21,7 @@
     smtp_host: smtprelay.example.com
     smtp_port: 25
     mail_from: "ansible@example.com"
-    mail_to: "travis.worth@example.com,steven.example@example.com"
+    mail_to: "travis.worth@example.com,colleague1@example.com"
     mail_subject: "Ansible job report"
     # Uncomment these if authentication is required
     #smtp_user:
@@ -32,13 +32,13 @@
     - name: Create output folder
       run_once: yes
       delegate_to: localhost
-      file:
+      ansible.builtin.file:
         path: "{{ outdir }}"
         state: directory
     
     # We set hosts as failed/missing until proven otherwise. See README.md
     - name: Set initial job status to catch missing/failed hosts
-      set_fact:
+      ansible.builtin.set_fact:
         job_success: False
         missing: True
     
@@ -46,7 +46,7 @@
       setup:
     
     - name: Set remaining hosts as not missing
-      set_fact:
+      ansible.builtin.set_fact:
         missing: False
 
     ############################
@@ -54,13 +54,13 @@
     ############################
     
     - name: yum check | Check for updates
-      yum:
+      ansible.builtin.yum:
         list: updates
         update_cache: true
       register: yum_update_output
 
     - name: yum check | Output debug yum check
-      debug:
+      ansible.builtin.debug:
         msg: "{{ yum_update_output.results |map(attribute='name') | list }}"
       changed_when: yum_update_output.rc == 100
       ignore_errors: yes
@@ -72,7 +72,7 @@
     ############################
 
     - name: Run a command and save the results (ignore errors)
-      command:
+      ansible.builtin.command:
         cmd: echo {{ yum_update_output.results |map(attribute='name') | list}}
       ignore_errors: yes
       register: cmd1_results
@@ -80,7 +80,7 @@
   post_tasks:
 
     - name: Mark surviving hosts as successful
-      set_fact:
+      ansible.builtin.set_fact:
         job_success: True
 
     # Saving curated lists of hosts as localhost facts, to make the Jinja loops easier to read in the template. 
@@ -89,7 +89,7 @@
       delegate_to: localhost
       delegate_facts: True
       run_once: yes
-      set_fact:
+      ansible.builtin.set_fact:
         date_str: "{{ date }}_{{ hms }}"
         date_str_pretty: "{{ date }} {{ hms_pretty }}"
 #        kernels_list: '{{ hostvars | json_query(kernel_query) | unique | sort }}'
@@ -109,7 +109,7 @@
       delegate_to: localhost
       delegate_facts: True
       run_once: yes
-      template:
+      ansible.builtin.template:
         src: job_report_master.j2
         dest: "{{ outdir  }}/job_report_{{ hostvars['localhost']['date_str'] }}.html"
 
@@ -117,7 +117,7 @@
       delegate_to: localhost
       run_once: yes
       when: send_email
-      mail:
+      community.general.mail:
         host: "{{ smtp_host }}"
         port: "{{ smtp_port }}"
         username: "{{ smtp_user | default(omit) }}"

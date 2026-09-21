@@ -1,6 +1,6 @@
 ---
 - name: show if windows has rebooted with updates
-  debug:
+  ansible.builtin.debug:
     msg: 
     - "win_updates.reboot_required: {{ win_updates.reboot_required }}"
     - "os_update_reboot: {{ os_update_reboot }}"

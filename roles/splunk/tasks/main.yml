@@ -1,31 +1,31 @@
 ---
 
 - name: Check if Splunk is already installed 
-  stat:
+  ansible.builtin.stat:
     path: /opt/splunkforwarder
   register: register_splunk
 
 - name: start fresh
-  yum:
+  ansible.builtin.dnf:
     name: splunkforwarder
     state: removed
 #  when: not register_splunk.stat.exists
 
 - name: remove previous version of Spunk on "{{ ansible_hostname }}"
-  file:
+  ansible.builtin.file:
     path: /opt/splunkforwarder
     state: absent 
     force: true
 #  when: not register_splunk.stat.exists
 
 - name: Configure splunk group
-  group:
+  ansible.builtin.group:
     name: "{{ splunk_group }}"
     state: present
 #  when: not register_splunk.stat.exists    
 
 - name: Configure splunk user
-  user:
+  ansible.builtin.user:
     name: "{{ splunk_user }}"
     state: present
     createhome: no
@@ -34,7 +34,7 @@
     home: "{{ splunk_home }}"
 #  when: not register_splunk.stat.exists
 
-- import_tasks: install.yml
+- ansible.builtin.import_tasks: install.yml
 #  when: not register_splunk.stat.exists
 
 #- import_tasks: config.yml

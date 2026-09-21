@@ -1,7 +1,7 @@
 ---
 
 - name: Check if Zabbix is installed
-  stat:
+  ansible.builtin.stat:
     path: /etc/zabbix
   register: register_zabbix
 
@@ -26,7 +26,7 @@
     force: true
 
 - name: Restart Zabbix Agent
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: zabbix-agent2
     state: restarted
     enabled: true

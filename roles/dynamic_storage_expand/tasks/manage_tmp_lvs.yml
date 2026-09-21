@@ -1,5 +1,5 @@
 - name: Define tmp mount points
-  set_fact:
+  ansible.builtin.set_fact:
     tmp_mounts:
       - { lv_name: "tmp", mount_point: "/tmp" }
       - { lv_name: "var_tmp", mount_point: "/var/tmp" }

@@ -6,17 +6,17 @@
   changed_when: false
 
 - name: Calculate VG free space and requested size
-  set_fact:
+  ansible.builtin.set_fact:
     vg_free_mb: "{{ (ansible_lvm.vgs[selected_vg].free_g | float * 1024) | int }}"
     requested_mb: "{{ (tmp_lv_size | default('1G') | regex_replace('G','') | float * 1024) | int }}"
 
 - name: Debug insufficient space message
-  debug:
+  ansible.builtin.debug:
     msg: "Skipping creation of LV '{{ tmp_item.lv_name }}' due to insufficient space in VG '{{ selected_vg }}'. Required: {{ requested_mb }} MB, Available: {{ vg_free_mb }} MB"
   when: vg_free_mb < requested_mb
 
 - name: Create LV if it doesn't exist and VG has enough space
-  lvol:
+  community.general.lvol:
     vg: "{{ selected_vg }}"
     lv: "{{ tmp_item.lv_name }}"
     size: "{{ tmp_lv_size | default('500M') }}"
@@ -27,7 +27,7 @@
     - vg_free_mb >= requested_mb
 
 - name: Create filesystem on LV if needed
-  filesystem:
+  community.general.filesystem:
     fstype: xfs
     dev: "/dev/{{ selected_vg }}/{{ tmp_item.lv_name }}"
   when:
@@ -41,7 +41,7 @@
   changed_when: false
 
 - name: Create mount point directory
-  file:
+  ansible.builtin.file:
     path: "{{ tmp_item.mount_point }}"
     state: directory
     mode: '1777'
@@ -53,7 +53,7 @@
   changed_when: false
 
 - name: Determine if mount options need to be updated
-  set_fact:
+  ansible.builtin.set_fact:
     needs_remount: >-
       {{
         ('nodev' not in mount_opts.stdout.split(',') or
@@ -62,13 +62,13 @@
       }}
 
 - name: Unmount if mounted with incorrect options
-  mount:
+  ansible.posix.mount:
     path: "{{ tmp_item.mount_point }}"
     state: unmounted
   when: needs_remount
 
 - name: Mount the LV with correct options
-  mount:
+  ansible.posix.mount:
     path: "{{ tmp_item.mount_point }}"
     src: "/dev/{{ selected_vg }}/{{ tmp_item.lv_name }}"
     fstype: xfs
@@ -77,7 +77,7 @@
   when: lv_confirm.rc == 0
 
 - name: Ensure mount is persistent with correct options
-  mount:
+  ansible.posix.mount:
     path: "{{ tmp_item.mount_point }}"
     src: "/dev/{{ selected_vg }}/{{ tmp_item.lv_name }}"
     fstype: xfs

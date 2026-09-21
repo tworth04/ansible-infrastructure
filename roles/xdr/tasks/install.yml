@@ -1,18 +1,18 @@
 ---
 
 - name: Send Cortex to /tmp on "{{ ansible_hostname }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ cortex_rpm }}"
     dest: /tmp/{{ cortex_rpm }}
 
 - name: Create directory structure if not present
-  file:
+  ansible.builtin.file:
     path: /etc/panw
     state: directory
     mode: '0755'
 
 - name: Copy Conf file to /etc/panw
-  copy:
+  ansible.builtin.copy:
     src: "{{ cortex_config }}"
     dest: /etc/panw/cortex.conf
 
@@ -20,7 +20,7 @@
 #  command: rpm -i /tmp/{{ cortex_rpm }}
 
 - name: Install Cortex 
-  yum:
+  ansible.builtin.dnf:
     name: /tmp/{{ cortex_rpm }}
     state: present
     disable_gpg_check: true

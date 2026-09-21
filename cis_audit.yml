@@ -42,7 +42,7 @@
 
   tasks:
 
-    - debug:
+    - ansible.builtin.debug:
         msg: "{{ item }} -> {{ hostvars[item].cis_audit_summary | default('NOT SET') }}"
       loop: "{{ ansible_play_hosts }}" 
       delegate_to: localhost
@@ -73,7 +73,7 @@
         host: "{{ smtp_host }}"
         port: "{{ smtp_port }}"
         to: "travis.worth@example.com (Travis Worth)"
-        from: "steve.example@example.com (Steve Example)"
+        from: "colleague1@example.com (Steve Example)"
         subject: "CIS Audit Report Summary"
         subtype: html
         body: |

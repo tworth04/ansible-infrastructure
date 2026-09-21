@@ -1,6 +1,6 @@
 ---
 - name: Install MariaDB
-  yum:
+  ansible.builtin.dnf:
     name: "{{ mariadb_rocky }}"
     state: latest
 

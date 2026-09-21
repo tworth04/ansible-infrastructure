@@ -1,11 +1,11 @@
 ---
 - name: Install Redis
-  yum:
+  ansible.builtin.dnf:
     name: "{{ redis_rocky }}"
     state: latest
 
 - name: Start and Enable Redis
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: redis
     state: stopped
     enabled: true

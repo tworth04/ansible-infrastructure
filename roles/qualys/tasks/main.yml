@@ -1,10 +1,10 @@
 ---
 
 - name: Import systemd facts
-  service_facts:
+  ansible.builtin.service_facts:
 
 - name: ensure clean install
-  file:
+  ansible.builtin.file:
     #    path: /etc/qualys/hostid 
     path: /etc/qualys 
     state: absent

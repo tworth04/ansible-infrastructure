@@ -29,7 +29,7 @@
 - name: Attempt system update – rebuild RPM‑DB only if needed
   block:
     - name: Update all packages
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: "*"
         state: latest
         disable_gpg_check: true
@@ -56,7 +56,7 @@
         )
 
     - name: Retry the yum update after rebuilding
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: "*"
         state: latest
         disable_gpg_check: true

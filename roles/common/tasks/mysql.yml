@@ -1,13 +1,13 @@
 ---
 
 - name: enable mariadb
-  service:
+  ansible.builtin.service:
     name: mariadb
     enabled: yes
   when: register_mariadb.stat.exists
 
 - name: enable mariadb
-  service:
+  ansible.builtin.service:
     name: mysqld
     enabled: yes
   when: register_mysql.stat.exists

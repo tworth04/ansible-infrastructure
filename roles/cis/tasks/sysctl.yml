@@ -161,7 +161,7 @@
       - { name: net.ipv6.conf.default.accept_ra, value: 0 }
 
 - name: 1.5.1 - Prevent suid programs from dumping core
-  sysctl:
+  ansible.posix.sysctl:
     ignoreerrors: yes
     name: fs.suid_dumpable
     value: 0

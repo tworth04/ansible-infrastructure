@@ -1,7 +1,7 @@
 ---
 # Initial attempt to grow and resize any existing LVM-backed partitions
-- name: Pre-check: Attempt growpart and pvresize on all LVM-backed partitions
-  shell: |
+- name: "Pre-check: Attempt growpart and pvresize on all LVM-backed partitions"
+  ansible.builtin.shell: |
     echo "Scanning for LVM-backed partitions..."
     for pv in $(lsblk -pn -o NAME,TYPE | awk '$2 == "part" {print $1}' | grep -E '^/dev/' | while read part; do
       if pvs "$part" &>/dev/null; then echo "$part"; fi
@@ -19,17 +19,17 @@
   tags: storage
 
 - name: Log pre-resize attempt output
-  debug:
+  ansible.builtin.debug:
     var: pre_lvm_resize_attempt.stdout
 
 # VMware disk expansion logic
 - name: Set disk and partition number from selected PV
-  set_fact:
+  ansible.builtin.set_fact:
     disk_to_grow: "{{ selected_pv | regex_replace('[0-9]+$', '') }}"
     part_num_to_grow: "{{ selected_pv | regex_search('[0-9]+$', ignorecase=True) }}"
 
 - name: Get current disk size from ansible_devices
-  set_fact:
+  ansible.builtin.set_fact:
     current_disk_size: "{{ ansible_devices[disk_to_grow].size | regex_replace(' GB','') | float }}"
   when: disk_to_grow is defined
 
@@ -45,16 +45,16 @@
   register: vm_disks
 
 - name: Set disk list fact
-  set_fact:
+  ansible.builtin.set_fact:
     disk_list: "{{ vm_disks.guest_disk_info.disks | default([]) }}"
 
 - name: Calculate unit_number_guess for disk
-  set_fact:
+  ansible.builtin.set_fact:
     unit_number_guess: "{{ (disk_to_grow | regex_replace('^sd','') | regex_replace('[^a-z]','') | length | int - 1) }}"
   when: disk_to_grow is defined
 
 - name: Map VMware controller details or fallback
-  set_fact:
+  ansible.builtin.set_fact:
     controller_number: "{{ (disk_list | selectattr('unit_number','equalto', unit_number_guess) | map(attribute='controller_number') | first) | default(0) }}"
     controller_type: "{{ (disk_list | selectattr('unit_number','equalto', unit_number_guess) | map(attribute='controller_type') | first) | default('paravirtual') }}"
   when: disk_to_grow is defined
@@ -77,7 +77,7 @@
   when: disk_to_grow is defined
 
 - name: Rescan SCSI bus
-  shell: |
+  ansible.builtin.shell: |
     for host in $(ls /sys/class/scsi_host/); do
       echo "- - -" > "/sys/class/scsi_host/${host}/scan"
     done
@@ -86,14 +86,14 @@
   when: disk_extension_status.changed
 
 - name: Refresh hardware facts after disk resize
-  setup:
+  ansible.builtin.setup:
     gather_subset:
       - hardware
   when: disk_extension_status.changed
 
 # Final attempt to grow and resize LVM-backed partitions after disk expansion
-- name: Post-check: Attempt growpart and pvresize on all LVM-backed partitions
-  shell: |
+- name: "Post-check: Attempt growpart and pvresize on all LVM-backed partitions"
+  ansible.builtin.shell: |
     echo "Scanning for LVM-backed partitions..."
     for pv in $(lsblk -pn -o NAME,TYPE | awk '$2 == "part" {print $1}' | grep -E '^/dev/' | while read part; do
       if pvs "$part" &>/dev/null; then echo "$part"; fi
@@ -111,5 +111,5 @@
   tags: storage
 
 - name: Log post-resize attempt output
-  debug:
+  ansible.builtin.debug:
     var: post_lvm_resize_attempt.stdout

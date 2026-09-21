@@ -6,11 +6,11 @@
 #    data: "{{ 'example_ips' is ansible.utils.ip }}"
 
 - name: Checking ips 
-  uri:
+  ansible.builtin.uri:
     url: "{{ example_uris }}"
     method: GET 
   register: web_check
 
 - name: show output
-  debug: 
+  ansible.builtin.debug: 
     var: web_check.content

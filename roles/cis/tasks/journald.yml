@@ -1,7 +1,7 @@
 ---
 
 - name: "5.1.2.1.1 | PATCH | Ensure systemd-journal-remote is installed"
-  yum:
+  ansible.builtin.dnf:
       name: systemd-journal-remote
       state: present
   timeout: 30

@@ -1,6 +1,6 @@
 ---
 - name: Create a user linux admin users with a home directory
-  user:
+  ansible.builtin.user:
     name: "{{ item }}"
     state: present
     create_home: yes
@@ -9,30 +9,30 @@
     - sp19363
 
 - name: Delete wrong username
-  user:
+  ansible.builtin.user:
     name: kb51131
     state: absent
 
 - name: Create svc_ansible system account with a home directory
-  user:
+  ansible.builtin.user:
     name: svc_ansible
     system: true
     state: present
     create_home: yes
 
 
- - name: Create user's .ssh directory if not present
-    file:
-     path: /home/{{ item }}/.ssh
-     mode: '0700'
-   loop:
-     - ansible-user
-     - sp19363
-     - kb51131
-     - svc_ansible
+- name: Create user's .ssh directory if not present
+  ansible.builtin.file:
+    path: "/home/{{ item }}/.ssh"
+    mode: '0700'
+  loop:
+    - ansible-user
+    - sp19363
+    - kb51131
+    - svc_ansible
 
 - name: Set up travis's authorized key
-  authorized_key:
+  ansible.posix.authorized_key:
     user: root
     state: present
     exclusive: true
@@ -40,7 +40,7 @@
     key: "{{ lookup('file', '/home/ansible-user/.ssh/sat_rsa') }}"
 
 - name: Set up travis's authorized key
-  authorized_key:
+  ansible.posix.authorized_key:
     user: ansible-user
     state: present
     exclusive: true
@@ -48,25 +48,25 @@
     key: "{{ lookup('file', '/home/ansible-user/.ssh/id_rsa.pub') }}"
 
 - name: Set up svc_ansible's authorized key
-  authorized_key:
+  ansible.posix.authorized_key:
     user: svc_ansible
     state: present
     key: "{{ lookup('file', '/home/svc_ansible/.ssh/id_rsa.pub') }}"
 
 - name: Set up steve's authorized key
-  authorized_key:
+  ansible.posix.authorized_key:
     user: sp19363
     state: present
     key: "{{ lookup('file', '/home/sp19363/.ssh/id_rsa.pub') }}"
 
 - name: Set up kranthi's authorized key
-  authorized_key:
+  ansible.posix.authorized_key:
     user: kb51131
     state: absent
     key: "{{ lookup('file', '/home/kb51131/.ssh/id_rsa.pub') }}"
 
 - name: Ensure svc_ansible user has correct password
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/selinux/config
     regexp: '^svc_ansible'
     line: "svc_ansible:!!:19564:0:99999:7:::"

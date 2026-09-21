@@ -1,6 +1,6 @@
 ---
 - name: Clone the template
-  vmware_guest:
+  community.vmware.vmware_guest:
     hostname: "{{ host }}"
     username: "{{ uname }}"
     password: "{{ pword }}"
@@ -31,7 +31,7 @@
       dns_suffix:
         - example.com
         - example.com
-  with_items: "{{ servers }}"
+  loop: "{{ servers }}"
   delegate_to: localhost
 
 #- name: Add host to group 'just_created'

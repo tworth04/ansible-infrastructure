@@ -24,7 +24,7 @@
 
 
     - name: Copy environment_config file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/environment_config.sql
         dest: /tmp/environment_config.sql
         mode: 0644
@@ -32,7 +32,7 @@
       shell: "mysql -u root environment_config < /tmp/environment_config.sql"
 
     - name: Copy fax_forms file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/fax_forms.sql
         dest: /tmp/fax_forms.sql
         mode: 0644
@@ -40,7 +40,7 @@
       shell: "mysql -u root fax_forms < /tmp/fax_forms.sql"
 
     - name: Copy rules file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/rules.sql
         dest: /tmp/rules.sql
         mode: 0644
@@ -48,7 +48,7 @@
       shell: "mysql -u root rules < /tmp/rules.sql"
 
     - name: Copy w1_system file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/w1_system.sql
         dest: /tmp/w1_system.sql
         mode: 0644
@@ -56,7 +56,7 @@
       shell: "mysql -u root w1_system < /tmp/w1_system.sql"
 
     - name: Copy zf2_system file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/zf2_system.sql
         dest: /tmp/zf2_system.sql
         mode: 0644
@@ -64,7 +64,7 @@
       shell: "mysql -u root zf2_system < /tmp/zf2_system.sql"
 
     - name: Copy advertisements file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/advertisements.sql
         dest: /tmp/advertisements.sql
         mode: 0644
@@ -72,7 +72,7 @@
       shell: "mysql -u root advertisements < /tmp/advertisements.sql"
 
     - name: Copy cms file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/cms.sql
         dest: /tmp/cms.sql
         mode: 0644
@@ -80,7 +80,7 @@
       shell: "mysql -u root cms < /tmp/cms.sql"
 
     - name: Copy csr file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/csr.sql
         dest: /tmp/csr.sql
         mode: 0644
@@ -88,7 +88,7 @@
       shell: "mysql -u root csr < /tmp/csr.sql"
 
     - name: Copy dynamic_content file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/dynamic_content.sql
         dest: /tmp/dynamic_content.sql
         mode: 0644
@@ -96,7 +96,7 @@
       shell: "mysql -u root dynamic_content < /tmp/dynamic_content.sql"
 
     - name: Copy eDoc_system file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/eDoc_system.sql
         dest: /tmp/eDoc_system.sql
         mode: 0644
@@ -104,7 +104,7 @@
       shell: "mysql -u root eDoc_system < /tmp/eDoc_system.sql"
 
     - name: Copy log_tracker file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/log_tracker.sql
         dest: /tmp/log_tracker.sql
         mode: 0644
@@ -112,7 +112,7 @@
       shell: "mysql -u root log_tracker < /tmp/log_tracker.sql"
 
     - name: Copy runtime_stats file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/runtime_stats.sql
         dest: /tmp/runtime_stats.sql
         mode: 0644
@@ -120,7 +120,7 @@
       shell: "mysql -u root runtime_stats < /tmp/runtime_stats.sql"
 
     - name: Copy security file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/security.sql
         dest: /tmp/security.sql
         mode: 0644
@@ -128,7 +128,7 @@
       shell: "mysql -u root security < /tmp/security.sql"
 
     - name: Copy translation file
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/translation.sql
         dest: /tmp/translation.sql
         mode: 0644
@@ -136,7 +136,7 @@
       shell: "mysql -u root translation < /tmp/translation.sql"
 
     - name: Copy adduser.sql
-      copy:
+      ansible.builtin.copy:
         src: /home/svc_ansible/automation/files/mysql_slp/dev/int/adduser.sql
         dest: /tmp/adduser.sql
         mode: 0644

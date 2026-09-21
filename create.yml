@@ -4,9 +4,9 @@
   connection: local
   gather_facts: no
   tasks:
-  - include_vars: roles/vmware_create/tasks/vars.yml
+  - ansible.builtin.include_vars: roles/vmware_create/tasks/vars.yml
   - name: Clone the template
-    vmware_guest:
+    community.vmware.vmware_guest:
       hostname: "{{ host }}"
       username: "{{ uname }}"
       password: "{{ pword }}"
@@ -42,4 +42,4 @@
           - 10.0.0.1
           - 10.0.0.1
 
-    with_items: "{{ servers }}"  
+    loop: "{{ servers }}"

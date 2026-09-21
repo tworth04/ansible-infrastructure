@@ -7,12 +7,12 @@
 
   tasks:
     - name: create_lv | Display Volume Group
-      debug:
+      ansible.builtin.debug:
         var: vg
         verbosity: 2
 
     - name: create_lv | creating new LVM logical volume(s)
-      lvol:
+      community.general.lvol:
         vg: vgSys
         lv: "{{ item }}"
         size: 2G
@@ -27,7 +27,7 @@
         - opt_IBM1
 
     - name: create_lv | debug changed attribute
-      debug:
+      ansible.builtin.debug:
         var: lvchanged
 
     - name: create_lv | configuring FS

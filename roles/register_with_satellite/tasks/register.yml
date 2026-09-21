@@ -1,12 +1,12 @@
 ---
 
 - name: Send Katello to /tmp on "{{ ansible_hostname }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ katello_rpm }}"
     dest: /tmp/{{ katello_rpm }}
 
 - name: Install katello cert
-  yum:
+  ansible.builtin.dnf:
     name: /tmp/{{ katello_rpm }}
     state: present
     disable_gpg_check: true

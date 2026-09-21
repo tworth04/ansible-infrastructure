@@ -20,7 +20,7 @@
       shell: cd /tmp/create_urls/;bash create_urls.sh
       register: command_output
     - name: Give output
-      debug:
+      ansible.builtin.debug:
         var: command_output.stdout
     - name: Extract create_redis_client
       shell: cd /tmp;tar -zxf create_redis_client.tar.gz
@@ -29,24 +29,24 @@
       shell: cd /tmp/create_redis_client;bash create_redis_client.sh
       register: command_output
     - name: Create /web/trace/db_v2.0_sql
-      file:
+      ansible.builtin.file:
         path: /web/trace/db_v2.0_sql
         state: directory
         mode: 0775
     - name: Ownership of /web/trace/db_v.20_sql
-      file:
+      ansible.builtin.file:
         path: /web/trace/db_v2.0_sql
         owner: apache
         group: webmaster 
     - name: Restart HTTPD and PHP-FPM
       shell: systemctl restart httpd;systemctl restart php-fpm
     - name: Create /webdata/local
-      file:
+      ansible.builtin.file:
         path: /webdata/local
         state: directory
         mode: 0775
     - name: Ownership of /webdata/local
-      file:
+      ansible.builtin.file:
         path: /webdata/local
         owner: root 
         group: webmaster 

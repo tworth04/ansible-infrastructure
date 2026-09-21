@@ -21,7 +21,7 @@
     smtp_host: smtprelay.example.com
     smtp_port: 25
     mail_from: "ansible@example.com"
-    mail_to: "travis.worth@example.com,steven.example@example.com"
+    mail_to: "travis.worth@example.com,colleague1@example.com"
     mail_subject: "Ansible job report"
     # Uncomment these if authentication is required
     #smtp_user:
@@ -33,7 +33,7 @@
       delegate_to: localhost
       run_once: yes
       when: send_email
-      mail:
+      community.general.mail:
         host: "{{ smtp_host }}"
         port: "{{ smtp_port }}"
         username: "{{ smtp_user | default(omit) }}"

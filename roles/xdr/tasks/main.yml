@@ -1,25 +1,25 @@
 ---
 
 - name: Check if Cortex installed correctly
-  stat:
+  ansible.builtin.stat:
     path: /opt/traps
   register: register_traps
 
 - name: start fresh
-  yum:
+  ansible.builtin.dnf:
     name: cortex-agent
     state: removed
     disablerepo: '*'
 #  when: not register_traps.stat.exists
 
-- import_tasks: install.yml
+- ansible.builtin.import_tasks: install.yml
 #  when: not register_traps.stat.exists
 
-- import_tasks: selinux.yml
+- ansible.builtin.import_tasks: selinux.yml
   when: ansible_facts.selinux.status == 'enabled'
 
 - name: restart traps service
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: traps_pmd
     state: started
     enabled: true

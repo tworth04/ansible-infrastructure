@@ -1,12 +1,12 @@
 ---
 
 - name: Send qualys proxy settings to /etc/sysconfig/qualys-cloud-agent "{{ ansible_hostname }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ qualys_proxy }}"
     dest: /etc/sysconfig/qualys-cloud-agent
 
 - name: restart qualys service
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: qualys-cloud-agent
     state: restarted
     enabled: true

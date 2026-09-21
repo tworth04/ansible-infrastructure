@@ -14,7 +14,7 @@
         timeout: 30
 #        subtype: html
 #        from: Travis Worth <travis.worth@example.com>
-        to: Steven Example <steven.example@example.com>
+        to: Steven Example <colleague1@example.com>
         cc: Travis Worth <travis.worth@example.com>
         subject: Yum Update Status
         body: The Following Servers Have Pending updates "{{ lookup('file', '/tmp/reboot_list.txt') }}" 

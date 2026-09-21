@@ -1,9 +1,9 @@
 ---
 - name: install needed packages
-  yum: 
+  ansible.builtin.dnf: 
     name: yum-utils
 - name: install security patches with yum
-  yum:
+  ansible.builtin.dnf:
     name: '*'
     state: latest
     update_cache: true

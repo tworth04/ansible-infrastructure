@@ -1,6 +1,6 @@
 ---
 - name: Check for reboot hint
-  shell: |
+  ansible.builtin.shell: |
     MISSING_EXECUTEABLES_COUNT=`cat /proc/*/smaps | sed  '/\//!d;/\(deleted\)/!d;/ \/\[/d;/ \/SYSV/d;/ \/dev\/zero/d;s@.* /@/@' | sort -u | wc -l`
     INITRD_FILE=`cat /proc/cmdline | sed 's/BOOT_IMAGE=/\/boot\//;s/ .*//'`
     INITRD_MOD_EPOCH=`stat -c '%Y' $INITRD_FILE`
@@ -28,7 +28,7 @@
     poll: 0  # fire and forget
 
   - name: wait for host to finish reboot
-    wait_for_connection:
+    ansible.builtin.wait_for_connection:
       delay: 20  # do not check for at least xx sec
 
   - name: check if host has booted within last 300 sec
@@ -37,7 +37,7 @@
     register: reboot_check
 
   - name: alert if host has not been rebootet
-    fail:
+    ansible.builtin.fail:
       msg: "{{ ansible_host }} has not booted, manual check needed"
     when: reboot_check.rc != 0
   when: reboot_hint.stdout.find("reboot") != -1

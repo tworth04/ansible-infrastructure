@@ -2,25 +2,25 @@
 # Cleanup temporary logical volumes before expansion
 
 - name: Find all temporary LVs across all volume groups
-  shell: |
+  ansible.builtin.shell: |
     lvs --noheadings -o vg_name,lv_name | awk '{gsub(/^[ \t]+|[ \t]+$/, "", $1); gsub(/^[ \t]+|[ \t]+$/, "", $2); if ($2 == "lv_tmp" || $2 == "lv_var_tmp") print $1":"$2}'
   register: temp_lvs_found
   changed_when: false
   failed_when: false
 
 - name: Initialize removable_lvs list
-  set_fact:
+  ansible.builtin.set_fact:
     removable_lvs: []
 
 - name: Build list of removable temporary LVs
-  set_fact:
+  ansible.builtin.set_fact:
     removable_lvs: "{{ removable_lvs + [ {'vg': vg_lv.split(':')[0], 'lv': vg_lv.split(':')[1]} ] }}"
   loop: "{{ temp_lvs_found.stdout_lines }}"
   loop_control:
     loop_var: vg_lv
 
 - name: Lazy unmount /tmp and /var/tmp if mounted
-  shell: |
+  ansible.builtin.shell: |
     for mnt in /tmp /var/tmp; do
       if mountpoint -q "$mnt"; then
         echo "Lazy unmounting $mnt"
@@ -33,7 +33,7 @@
   tags: cleanup
 
 - name: Remove temporary LVs if they exist
-  lvol:
+  community.general.lvol:
     vg: "{{ item.vg }}"
     lv: "{{ item.lv }}"
     state: absent
@@ -43,7 +43,7 @@
   tags: cleanup
 
 - name: Remove any stale fstab entries for /tmp and /var/tmp
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/fstab
     state: absent
     regexp: '^.*[ \t]+(/tmp|/var/tmp)[ \t]+.*$'
@@ -53,22 +53,22 @@
 # Expand VMware disk if needed
 
 - name: Set disk list fact
-  set_fact:
+  ansible.builtin.set_fact:
     disk_list: "{{ vm_disks.guest_disk_info.disks | default([]) }}"
 
 - name: Calculate unit_number_guess for disk
-  set_fact:
+  ansible.builtin.set_fact:
     unit_number_guess: "{{ (disk_to_grow | regex_replace('^sd','') | regex_replace('[^a-z]','') | length | int - 1) }}"
   when: disk_to_grow is defined
 
 - name: Map VMware controller details or fallback
-  set_fact:
+  ansible.builtin.set_fact:
     controller_number: "{{ (disk_list | selectattr('unit_number','equalto', unit_number_guess) | map(attribute='controller_number') | first) | default(0) }}"
     controller_type: "{{ (disk_list | selectattr('unit_number','equalto', unit_number_guess) | map(attribute='controller_type') | first) | default('paravirtual') }}"
   when: disk_to_grow is defined
 
 - name: Log disk expansion details
-  debug:
+  ansible.builtin.debug:
     msg: >
       Expanding disk '{{ disk_to_grow }}' on VM '{{ inventory_hostname }}':
       - Current size: {{ current_disk_size }} GB
@@ -95,7 +95,7 @@
   when: disk_to_grow is defined
 
 - name: Log disk extension status
-  debug:
+  ansible.builtin.debug:
     var: disk_extension_status
   when: disk_to_grow is defined
 
@@ -106,7 +106,7 @@
   when: disk_extension_status.changed
 
 - name: Refresh hardware facts after disk resize
-  setup:
+  ansible.builtin.setup:
     gather_subset:
       - hardware
   when: disk_extension_status.changed
@@ -114,7 +114,7 @@
 # Identify volume groups that need expansion
 
 - name: Filter volume groups needing expansion
-  set_fact:
+  ansible.builtin.set_fact:
     vgs_needing_expansion: >-
       {{
         ansible_lvm.vgs
@@ -126,7 +126,7 @@
       }}
 
 - name: Map volume groups to their physical volumes
-  set_fact:
+  ansible.builtin.set_fact:
     vg_pv_map: >-
       {{
         dict(
@@ -144,7 +144,7 @@
       }}
 
 - name: Build list of VG-PV pairs needing expansion
-  set_fact:
+  ansible.builtin.set_fact:
     vg_pv_pairs: >-
       {{
         vgs_needing_expansion
@@ -157,15 +157,15 @@
       }}
 
 - name: Debug volume groups needing expansion
-  debug:
+  ansible.builtin.debug:
     var: vgs_needing_expansion
 
 - name: Debug VG-PV map
-  debug:
+  ansible.builtin.debug:
     var: vg_pv_map
 
 - name: Debug VG-PV pairs
-  debug:
+  ansible.builtin.debug:
     var: vg_pv_pairs
 
 - name: Loop through VG-PV pairs and expand each
@@ -181,7 +181,7 @@
 # Create tmp volumes in the VG with most free space
 
 - name: Select VG with most free space for tmp volumes
-  set_fact:
+  ansible.builtin.set_fact:
     selected_vg: >-
       {{
         ansible_lvm.vgs
@@ -192,7 +192,7 @@
       }}
 
 - name: Define tmp mount points
-  set_fact:
+  ansible.builtin.set_fact:
     tmp_mounts:
       - { lv_name: "tmp", mount_point: "/tmp" }
       - { lv_name: "var_tmp", mount_point: "/var/tmp" }

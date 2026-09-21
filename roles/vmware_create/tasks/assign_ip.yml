@@ -6,7 +6,7 @@
   register: nmap_results
 
 - name: Determine an available IP address
-  set_fact:
+  ansible.builtin.set_fact:
     assigned_ip: "{{ item.address }}"
   loop: "{{ nmap_results.results }}"
   until: assigned_ip is defined and assigned_ip not in used_ips
@@ -24,11 +24,11 @@
     ip_address: "{{ assigned_ip }}"
     state: present
 
-- debug:
+- ansible.builtin.debug:
     msg: "Assigned IP to VM: {{ assigned_ip }}"
 
 - name: Create or update ansible.cfg
-  copy:
+  ansible.builtin.copy:
     content: |
       [defaults]
       inventory = {{ hosts_inventory_path }}
@@ -36,11 +36,11 @@
     dest: "{{ ansible_config_path }}"
 
 - name: Add new host to the inventory file
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ hosts_inventory_path }}"
     regexp: '^{{ vm_name }}'
     line: '{{ vm_name }} ansible_host={{ assigned_ip }} ansible_ssh_user=your_username ansible_ssh_private_key_file=/path/to/private-key.pem'
     create: yes
 
-- debug:
+- ansible.builtin.debug:
     msg: "VM {{ vm_name }} has been added to the inventory file."

@@ -15,5 +15,5 @@
       delegate_to: "{{ ansibe_host }}"
       become: yes
       shell: "redis-cli -p {{ item.stdout }} INFO keyspace"
-      with_items: "{{ redis_ports.results }}"
+      loop: "{{ redis_ports.results }}"
 

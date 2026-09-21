@@ -11,7 +11,7 @@
   tasks:
 
     - name: Filter volume groups needing expansion
-      set_fact:
+      ansible.builtin.set_fact:
         vgs_needing_expansion: >-
           {{
             ansible_lvm.vgs
@@ -27,11 +27,11 @@
       when: vgs_needing_expansion | length == 0
 
     - name: Show volume groups needing expansion
-      debug:
+      ansible.builtin.debug:
         var: vgs_needing_expansion
 
     - name: Map volume groups to their physical volumes
-      set_fact:
+      ansible.builtin.set_fact:
         vg_pv_map: >-
           {{
             ansible_lvm.pvs
@@ -41,7 +41,7 @@
           }}
 
     - name: Build list of VG-PV pairs needing expansion
-      set_fact:
+      ansible.builtin.set_fact:
         vg_pv_pairs: >-
           {{
             vgs_needing_expansion

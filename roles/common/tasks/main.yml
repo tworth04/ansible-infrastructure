@@ -54,7 +54,7 @@
 # 4️⃣  Un‑install any local Ansible and package housekeeping
 # --------------------------------------------------------------------
 - name: Remove local Ansible installation
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name: ansible*
     state: absent
   become: true
@@ -66,7 +66,7 @@
   block:
     # 5a. RHEL 8/9 (RedHat or Rocky)
     - name: Install base packages for RHEL 8/9
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: "{{ packages_redhat }}"
         state: latest
         disable_gpg_check: true
@@ -75,7 +75,7 @@
 
     # 5b. RHEL 7
     - name: Install base packages for RHEL 7
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: "{{ packages_rhel7 }}"
         state: latest
         disable_gpg_check: true
@@ -102,7 +102,7 @@
 
     # 5d. Retry the update after rebuilding
     - name: Retry system update (post‑rebuild)
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name: "*"
         state: latest
         disable_gpg_check: true

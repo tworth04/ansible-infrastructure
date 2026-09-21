@@ -1,6 +1,6 @@
 ---
 - name: remove katello package
-  yum: 
+  ansible.builtin.dnf: 
     name: katello-ca-consumer-prod-sat02.example.com-1.0-2.noarch
     state: absent
   async: 20
@@ -13,12 +13,12 @@
   command: yum clean all
 
 - name: Send Katello to /tmp on "{{ ansible_hostname }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ katello_rpm }}"
     dest: /tmp/{{ katello_rpm }}
 
 - name: Install katello cert
-  yum:
+  ansible.builtin.dnf:
     name: /tmp/{{ katello_rpm }}
     state: latest
     disable_gpg_check: true

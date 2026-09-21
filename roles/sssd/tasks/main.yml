@@ -6,12 +6,12 @@
   command: "realm leave"
 
 - name: remove krb5.keytab
-  file:
+  ansible.builtin.file:
     path: /etc/krb5.keytab
     state: absent
 
 - name: Join system to AD
-  expect:
+  ansible.builtin.expect:
     command: "realm join -U {{ bind_username }} EXAMPLE.ADP.AD "
     responses: 
       Password for *: "{{ bind_password }}"
@@ -32,7 +32,7 @@
 #      full_name_format = %1$s
 
 - name: Copy Conf file to /etc/sssd/sssd.conf
-  copy:
+  ansible.builtin.copy:
     #src: /etc/sssd/sssd.conf
     src: files/sssd.conf
     #src: "{{ sssd }}"
@@ -40,7 +40,7 @@
     force: true
 
 - name: restart sssd service
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: sssd
     state: restarted
     enabled: true

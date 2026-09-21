@@ -1,6 +1,6 @@
 ---
 - name: perform full os upgrade
-  yum:
+  ansible.builtin.dnf:
     name: '*'
     update_cache: true
     state: latest

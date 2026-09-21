@@ -1,7 +1,7 @@
 ---
 
 - name: Send Tanium to /tmp on "{{ ansible_hostname }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ tanium_rpm_el7 }}"
     dest: /tmp/{{ tanium_rpm_el7 }}
 
@@ -9,7 +9,7 @@
 #  command: rpm -i /tmp/{{ tanium_rpm }}
 
 - name: Install Tanium 
-  yum:
+  ansible.builtin.dnf:
     name: /tmp/{{ tanium_rpm_el7 }}
     state: present
     disable_gpg_check: true
@@ -17,12 +17,12 @@
   poll: 5
 
 - name: Copy Tanium dat file to /opt/Tanium 
-  copy:
+  ansible.builtin.copy:
     src: "{{ tanium_config }}"
     dest: /opt/Tanium/TaniumClient
 
 - name: Restart Tanium service and set Enabled 
-  systemd_service:
+  ansible.builtin.systemd_service:
     name: taniumclient
     state: restarted
     enabled: true
