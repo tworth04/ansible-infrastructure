@@ -1,0 +1,5 @@
+# terraform.tfvars — REAL VALUES ARE NEVER COMMITTED.
+# Copy this to terraform.tfvars (gitignored) and fill in real secrets,
+# or export TF_VAR_vsphere_password in your shell.
+
+vsphere_password = "REPLACE_ME"

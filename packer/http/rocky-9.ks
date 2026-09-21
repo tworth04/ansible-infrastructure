@@ -1,0 +1,38 @@
+# Rocky Linux 9 (RHEL9-family) kickstart for the Packer golden image.
+# Served over HTTP by the Packer builder (http_directory = "http").
+# NOTE: every RHEL9-family section MUST be closed with %end.
+
+text
+lang en_US.UTF-8
+keyboard us
+timezone America/New_York --utc
+
+network --bootproto=dhcp --activate --onboot=yes
+
+# Root stays locked; day-2 tooling uses sudo/ansible from the repo.
+rootpw --lock
+
+# Build-time-only credential, used solely so Packer can SSH in during the
+# build. The hardening playbook removes this user before the VM is
+# converted into a template — never ship it in the finished image.
+user --name=packer --password=*** --iscrypted=no --groups=wheel
+
+bootloader --location=mbr --boot-drive=sda
+zerombr
+clearpart --all --initlabel --disklabel=gpt
+part /boot --size=1024 --fstype=xfs --asprimary --ondisk=sda
+part swap --size=4096 --fstype=swap --asprimary --ondisk=sda
+part pv.01 --size=1 --grow --ondisk=sda
+volgroup vg0 pv.01
+logvol / --vgname=vg0 --name=root --size=1 --grow --fstype=xfs
+
+services --enabled=sshd,firewalld --disabled=
+
+%packages
+@core
+open-vm-tools
+%end
+
+%post --log=/root/ks-post.log
+dnf clean all
+%end

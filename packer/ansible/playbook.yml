@@ -1,0 +1,76 @@
+---
+# Golden-image provisioning/hygiene playbook, run by Packer against the
+# just-built VM (communicator: ssh, user: packer).
+- name: Rocky 9 golden image — hardening and template hygiene
+  hosts: all
+  gather_facts: true
+  become: true
+
+  tasks:
+    - name: Update all packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Ensure open-vm-tools is installed
+      ansible.builtin.dnf:
+        name: open-vm-tools
+        state: present
+
+    - name: Ensure sshd and firewalld are enabled
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: true
+      loop:
+        - sshd
+        - firewalld
+
+    # ------------------------------------------------------------------
+    # TEMPLATE HYGIENE — the image must not carry unique machine identity.
+    # ------------------------------------------------------------------
+
+    - name: Remove build-time packer user (credential must not ship)
+      ansible.builtin.user:
+        name: packer
+        state: absent
+        remove: true
+      ignore_errors: true # removing our own ssh user mid-play is fine
+
+    - name: Truncate /etc/machine-id (zero-length so first boot regenerates)
+      ansible.builtin.copy:
+        content: ""
+        dest: /etc/machine-id
+        force: true
+
+    - name: Remove SSH host keys (regenerated on first boot)
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop: "{{ q('ansible.builtin.fileglob', '/etc/ssh/ssh_host_*') }}"
+
+    - name: Clean dnf caches
+      ansible.builtin.command: dnf clean all
+      changed_when: true
+
+    - name: Truncate logs
+      ansible.builtin.find:
+        paths: /var/log
+        patterns: "*.log"
+      register: logfiles
+
+    - name: Zero out each log file
+      ansible.builtin.command: "truncate -s 0 {{ item.path }}"
+      loop: "{{ logfiles.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+      changed_when: true
+
+# ----------------------------------------------------------------------
+# Layer the repo's existing roles here. The Packer provisioner passes
+# --roles-path ../roles, so any top-level role is addressable by name, e.g.:
+#
+#   roles:
+#     - role: common
+#     - role: cis
+# ----------------------------------------------------------------------

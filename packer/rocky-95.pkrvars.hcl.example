@@ -1,0 +1,27 @@
+# Sample variable file — copy to rocky-95.pkrvars.hcl (gitignored) and fill
+# in real values. NEVER commit real credentials.
+#
+# Secrets can also come from env vars instead of a file:
+#   export PKR_VAR_vsphere_password='...'
+#   export PKR_VAR_ssh_password='...'
+
+vsphere_endpoint  = "vcenter.example.com"
+vsphere_username  = "ansible-svc@vsphere.local"
+vsphere_password  = "CHANGE_ME_DUMMY_NOT_A_REAL_SECRET"
+
+vsphere_datacenter = "Example Dev"
+vsphere_cluster    = "Lower Env Linux App Services EVC"
+vsphere_datastore  = "PURE_ESXi_Lower_LinuxAppx_DS08"
+vsphere_network    = "dvPG-SitLinuxServers-443"
+vsphere_folder     = "Templates/Packer"
+
+vm_name       = "rocky-95-minimal"
+guest_os_type = "rockyLinux9_64Guest"
+
+cpus   = 2
+memory = 4096
+
+ssh_username = "packer"
+ssh_password = "CHANGE_ME_DUMMY_NOT_A_REAL_SECRET"
+
+iso_path = "ISOs/Rocky-9.5-x86_64-minimal.iso"
