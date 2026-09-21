@@ -9,7 +9,7 @@
 #    state: present
 #
 - name: Create database user with name '{{ mysql_user }}' and password '{{ mysql_pass }}' with needed database privileges
-  command: mysql -e "CREATE USER 'zbx_monitor'@'%' IDENTIFIED BY 'Z@bb1x';"
+  command: mysql -e "CREATE USER '{{ mysql_user }}'@'%' IDENTIFIED BY '{{ mysql_pass }}';"
 
 - name: Create database user with name '{{ mysql_user }}' and password '{{ mysql_pass }}' with needed database privileges
   command: mysql -e "GRANT REPLICATION CLIENT,PROCESS,SHOW DATABASES,SHOW VIEW ON *.* TO 'zbx_monitor'@'%';"
