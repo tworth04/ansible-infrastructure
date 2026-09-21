@@ -1,0 +1,59 @@
+---
+# Minimal Windows baseline — the Windows sibling of the Linux day-2 roles.
+# Run against the example inventory (or any WinRM-reachable Windows host):
+#
+#   ansible-playbook -i inventory/windows-example.yml playbooks/windows_baseline.yml \
+#     --extra-vars "ansible_password=..."     # supply out of band, never commit
+#
+# Control-node requirement: pywinrm (pip install --user pywinrm) +
+# collections from ../requirements.yml (repo root requirements.yml).
+- name: Windows server baseline
+  hosts: windows_servers
+  gather_facts: true
+
+  vars:
+    win_baseline_timezone: Eastern Standard Time
+
+  tasks:
+    - name: Set time zone
+      ansible.windows.win_timezone:
+        timezone: "{{ win_baseline_timezone }}"
+
+    - name: Power plan — High Performance
+      community.windows.win_power_plan:
+        name: High Performance
+
+    # Update posture: SCAN by default so a baseline run never reboots a
+    # server mid-business-hours. To actually patch, re-run with
+    # -e win_baseline_updates=install (and expect a reboot window).
+    - name: Windows Update — scan (report pending)
+      ansible.windows.win_updates:
+        category_names:
+          - CriticalUpdates
+          - SecurityUpdates
+        state: searched
+      register: baseline_updates
+      when: (win_baseline_updates | default('scan')) == 'scan'
+
+    - name: "Install Windows updates (opt-in with -e win_baseline_updates=install)"
+      ansible.windows.win_updates:
+        category_names:
+          - CriticalUpdates
+          - SecurityUpdates
+        state: installed
+        reboot: true
+      when: (win_baseline_updates | default('scan')) == 'install'
+
+    - name: Report pending update count
+      ansible.builtin.debug:
+        msg: "Pending critical/security updates: {{ baseline_updates.updates | default({}) | length }}"
+      when: baseline_updates is succeeded
+
+    # Windows Features (roles) are the day-2 surface — add per-server, e.g.:
+    #
+    # - name: Ensure IIS web server feature
+    #   ansible.windows.win_feature:
+    #     name: Web-Server
+    #     state: present
+    #     include_sub_features: false
+    #     reboot: false

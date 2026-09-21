@@ -1,0 +1,83 @@
+---
+# Windows golden-image hygiene playbook — the Windows sibling of
+# ansible/playbook.yml. Two ways to run it:
+#
+#   1. From Packer (uncomment the `provisioner "ansible"` block in
+#      windows-server.pkr.hcl — it passes the winrm vars for you).
+#   2. Day-2 against a deployed VM:
+#        ansible-playbook -i ../../inventory/windows-example.yml \
+#          packer/ansible/windows-playbook.yml
+#
+# Control-node requirement: pip install --user pywinrm, and the
+# ansible.windows / community.windows collections (repo requirements.yml).
+- name: Windows golden image — hygiene and template prep
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Set time zone
+      ansible.windows.win_timezone:
+        timezone: Eastern Standard Time
+
+    - name: Power plan — High performance (build/deploy VMs should not sleep)
+      community.windows.win_power_plan:
+        name: High Performance
+
+    # ------------------------------------------------------------------
+    # Windows Update at bake time: bakes a patch-current image but makes
+    # every build slow and non-reproducible. Default posture: leave
+    # updates to the patch cadence, scan-only example below.
+    # ------------------------------------------------------------------
+    - name: Windows Update — scan only (report what WOULD install)
+      ansible.windows.win_updates:
+        category_names:
+          - CriticalUpdates
+          - SecurityUpdates
+        state: searched
+      register: win_updates_scan
+
+    - name: Report pending updates
+      ansible.builtin.debug:
+        var: win_updates_scan.updates | length
+      when: win_updates_scan is succeeded
+
+    # Install instead of scan — uncomment if you want a patch-current
+    # golden image (slow, and re-run once for the post-reboot queue):
+    #
+    # - name: Windows Update — install
+    #   ansible.windows.win_updates:
+    #     category_names:
+    #       - CriticalUpdates
+    #       - SecurityUpdates
+    #     state: installed
+    #     reboot: true
+
+    # ------------------------------------------------------------------
+    # TEMPLATE HYGIENE — no build-VM-specific state ships in the image.
+    # (sysprep is intentionally NOT run: Terraform guest customization
+    #  handles SID/computer-name identity on clone, matching the Linux
+    #  pipeline where Packer only strips machine identity.)
+    # ------------------------------------------------------------------
+
+    - name: Clear all event logs
+      ansible.windows.win_shell: |
+        wevtutil el | ForEach-Object { wevtutil cl "$_" }
+      changed_when: true
+
+    - name: Clear temp directories
+      ansible.windows.win_file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - C:\Windows\Temp
+        - C:\Users\Administrator\AppData\Local\Temp
+
+    - name: Empty Recycle Bin
+      ansible.windows.win_shell: |
+        Clear-RecycleBin -Force -ErrorAction SilentlyContinue
+      changed_when: true
+
+    # NOTE: the build-time Administrator password set by autounattend stays
+    # on the template. Do NOT log into template-derived VMs with it —
+    # terraform/modules/vm-windows sets a fresh admin password per VM via
+    # guest customization on every clone.

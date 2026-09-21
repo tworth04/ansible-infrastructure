@@ -1,0 +1,35 @@
+# Sanitized sample vars for windows-server-2025.pkr.hcl — copy to
+# windows-server-2025.pkrvars.hcl (gitignored), fill real values, NEVER commit.
+# Sensitive values are better supplied via env vars:
+#   export PKR_VAR_vsphere_password='...'
+#   export PKR_VAR_winrm_password='***'   # build-time-only Administrator password (shared var with the 2022 template)
+
+# vSphere placement (matches the repo's Linux pipeline). 2025 requires
+# vSphere 8+ hosts in the cluster.
+vsphere_endpoint   = "vcenter.example.com"
+vsphere_username   = "ansible-svc@vsphere.local"
+vsphere_datacenter = "Example Dev"
+vsphere_cluster    = "Lower Env Linux App Services EVC"
+vsphere_datastore  = "PURE_ESXi_Lower_LinuxAppx_DS08"
+vsphere_network    = "dvPG-SitLinuxServers-443"
+vsphere_folder     = "Templates/Packer"
+
+# VM shape
+win25_vm_name       = "windows-2025-minimal"
+win25_guest_os_type = "windows2022srvNext_64Guest" # reference repo's 2025 guest ID
+win25_cpus          = 2
+win25_memory        = 4096
+
+# vTPM + virtualization-based security (requires efi-secure, hardcoded in
+# the template; cluster TPM provisioning policy must allow vTPM key escrow)
+win25_vbs_enabled = true
+
+# Removable media
+win25_iso_path = "ISOs/Windows-Server-2025.iso"
+
+# Install image selection (2025 edition name differs from 2022)
+win25_inst_os_image    = "Windows Server 2025 SERVERSTANDARD"
+win25_inst_os_key      = "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" # only for retail/vl ISOs
+win25_inst_os_language = "en-US"
+win25_inst_os_keyboard = "0x00000409"
+win25_guest_os_timezone = "Eastern Standard Time"

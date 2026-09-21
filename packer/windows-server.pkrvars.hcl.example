@@ -1,0 +1,30 @@
+# Sanitized sample vars for windows-server.pkr.hcl — copy to
+# windows-server.pkrvars.hcl (gitignored), fill real values, NEVER commit.
+# Sensitive values are better supplied via env vars:
+#   export PKR_VAR_vsphere_password='...'
+#   export PKR_VAR_winrm_password='***'   # build-time-only Administrator password
+
+# vSphere placement (matches the repo's Linux pipeline)
+vsphere_endpoint  = "vcenter.example.com"
+vsphere_username  = "ansible-svc@vsphere.local"
+vsphere_datacenter = "Example Dev"
+vsphere_cluster    = "Lower Env Linux App Services EVC"
+vsphere_datastore  = "PURE_ESXi_Lower_LinuxAppx_DS08"
+vsphere_network    = "dvPG-SitLinuxServers-443"
+vsphere_folder     = "Templates/Packer"
+
+# VM shape
+win_vm_name        = "windows-2022-minimal"
+win_guest_os_type  = "windows2019srvNext_64Guest" # 2022 guest ID; 2025: windows2025srvNext_64Guest
+win_cpus           = 2
+win_memory         = 4096
+
+# Removable media
+win_iso_path = "ISOs/Windows-Server-2022.iso"
+
+# Install image selection
+win_inst_os_image    = "Windows Server 2022 SERVERSTANDARD"
+win_inst_os_key      = "XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" # only for retail/vl ISOs
+win_inst_os_language = "en-US"
+win_inst_os_keyboard = "0x00000409"
+win_guest_os_timezone = "Eastern Standard Time"

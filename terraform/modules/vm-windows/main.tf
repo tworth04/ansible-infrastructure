@@ -32,17 +32,14 @@ resource "vsphere_virtual_machine" "vm" {
   memory   = var.memory
   guest_id = data.vsphere_virtual_machine.template.guest_id
 
-  # Disk 0 inherits size/provisioning from the template (pattern from
-  # vmware/packer-examples-for-vsphere, BSD-2-Clause) instead of forcing a
-  # fixed size — avoids "new size smaller than disk" clone failures when the
-  # template layout differs. disk_size > 0 grows it beyond the template's.
+  # The Packer template owns disk 0's base layout — size here only extends it.
   disk {
     label            = "disk0"
-    size             = var.disk_size > 0 ? var.disk_size : data.vsphere_virtual_machine.template.disks[0].size
-    thin_provisioned = data.vsphere_virtual_machine.template.disks[0].thin_provisioned
-    eagerly_scrub    = data.vsphere_virtual_machine.template.disks[0].eagerly_scrub
+    size             = var.disk_size
+    thin_provisioned = true
   }
 
+  # Template ships VMware Tools + a vmxnet3 driver — the hardened NIC wins.
   network_interface {
     network_id   = data.vsphere_network.network.id
     adapter_type = "vmxnet3"
@@ -54,9 +51,19 @@ resource "vsphere_virtual_machine" "vm" {
     template_uuid = data.vsphere_virtual_machine.template.uuid
 
     customize {
-      linux_options {
-        host_name = "${var.prefix}-${var.role}"
-        domain    = var.domain
+      # windows_options (vs. linux_options in modules/vm): guest customization
+      # sets a FRESH computer name + admin password on every clone, which is
+      # what supersedes the build-time password baked into the template.
+      windows_options {
+        computer_name  = "${var.prefix}-${var.role}"
+        admin_password = var.admin_password
+        workgroup      = var.domain # workgroup unless joining a domain below
+
+        # Domain join — flip join_domain in the map entry and supply the
+        # service creds (sensitive tfvars, never committed):
+        # join_domain   = var.join_domain
+        # domain_user   = var.domain_user
+        # domain_password = var.domain_password
       }
       network_interface {
         ipv4_address = var.ip
@@ -64,18 +71,15 @@ resource "vsphere_virtual_machine" "vm" {
       }
       ipv4_gateway    = var.gateway
       dns_server_list = var.dns_servers
-      dns_suffix_list = var.dns_suffixes
     }
   }
+
   # vCenter-owned attributes — ignore so day-2 ops (vmotion, annotations,
-  # re-pointing a VM at a newer template build) don't show as drift.
-  # NOTE: `disk` is deliberately NOT ignored — disk changes (grow, add a data
-  # disk) SHOULD appear in plans and be applied. (Pattern from
-  # vmware/packer-examples-for-vsphere, BSD-2-Clause.)
+  # hot-added disks) don't show as drift.
   lifecycle {
     ignore_changes = [
       annotation,
-      clone[0].template_uuid,
+      disk,
     ]
   }
 }

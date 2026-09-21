@@ -40,5 +40,6 @@ module "vms" {
   domain             = var.domain
   gateway            = var.gateway
   dns_servers        = var.dns_servers
+  dns_suffixes       = var.dns_suffixes
   netmask            = var.netmask
 }

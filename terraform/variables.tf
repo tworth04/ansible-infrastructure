@@ -66,6 +66,12 @@ variable "dns_servers" {
   default = ["10.0.0.5", "10.0.0.6"]
 }
 
+variable "dns_suffixes" {
+  description = "DNS search suffixes for guest customization (empty = none)"
+  type        = list(string)
+  default     = []
+}
+
 variable "domain" {
   type    = string
   default = "example.com"

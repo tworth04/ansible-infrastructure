@@ -1,0 +1,18 @@
+---
+# Collections for Windows management (WinRM) — install with:
+#   ansible-galaxy collection install -r requirements.yml -p ~/.ansible/collections
+# Also the source for the Packer Windows build host (same control node).
+collections:
+  # Core Windows modules: win_shell, win_file, win_timezone, win_updates, ...
+  - name: ansible.windows
+    version: ">=2.3.0"
+  # Extras: win_power_plan, win_auto_update, win_defrag, ...
+  - name: community.windows
+    version: ">=2.3.0"
+  # Active Directory: domain join/OU/computer-object management (day-2)
+  - name: microsoft.ad
+    version: ">=1.7.0"
+  # Legacy roles/vmware_create path (vmware_guest module lives here) —
+  # actively maintained line (v6.4.0, Sep 2026; tested against Ansible >=2.21)
+  - name: community.vmware
+    version: ">=6.4.0"

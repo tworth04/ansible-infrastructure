@@ -7,11 +7,6 @@ variable "template_name" { type = string }
 variable "domain" { type = string }
 variable "gateway" { type = string }
 variable "dns_servers" { type = list(string) }
-variable "dns_suffixes" {
-  description = "DNS search suffixes passed to guest customization (pattern from vmware/packer-examples-for-vsphere, BSD-2)"
-  type        = list(string)
-  default     = []
-}
 variable "netmask" { type = number }
 
 variable "prefix" {
@@ -20,7 +15,7 @@ variable "prefix" {
 }
 
 variable "role" {
-  description = "Role suffix, e.g. web/app/db"
+  description = "Role suffix, e.g. web/app/sql"
   type        = string
 }
 
@@ -37,6 +32,31 @@ variable "memory" {
 variable "disk_size" {
   description = "Root disk GB — template disk is grown to this size"
   type        = number
+}
+
+variable "admin_password" {
+  description = "Per-VM local Administrator password set by guest customization — overrides the build-time password baked in the template. Supply via TF_VAR*/tfvars, never commit."
+  type        = string
+  sensitive   = true
+}
+
+# Optional domain-join inputs — leave join_domain = false for workgroup VMs.
+variable "join_domain" {
+  type    = bool
+  default = false
+}
+
+variable "domain_user" {
+  description = "Upn principal for domain join (only used when join_domain = true)"
+  type        = string
+  default     = null
+}
+
+variable "domain_password" {
+  description = "Password for domain_user (only used when join_domain = true)"
+  type        = string
+  default     = null
+  sensitive   = true
 }
 
 output "vm_name" {

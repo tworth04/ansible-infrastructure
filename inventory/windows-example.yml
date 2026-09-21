@@ -1,0 +1,22 @@
+---
+# EXAMPLE-GRADE Windows inventory — placeholder host/IP, nothing real.
+# Copy the pattern once a Windows VM exists (or wire the windows group into
+# the vmware_vm_inventory constructed groups). WinRM-over-HTTP is fine on a
+# trusted management VLAN; move to 5986 + https + cert validation for prod.
+all:
+  children:
+    windows_servers:
+      hosts:
+        dev-winweb01:
+          ansible_host: 10.0.0.99 # placeholder — replace with the real VM IP
+      vars:
+        ansible_connection: winrm
+        ansible_port: 5985                   # WinRM HTTP (5986 for HTTPS)
+        ansible_user: Administrator
+        # Supply out of band: --extra-vars ansible_password=... or a vault /
+        # env var (ANSIBLE_PASSWORD via a plugin). Never commit it here.
+        # ansible_password: "{{ vault_win_admin_password }}"
+        ansible_winrm_transport: ntlm        # ntlm unless domain-joined → kerberos/credssp
+        ansible_winrm_server_cert_validation: ignore # self-signed listener cert on HTTP is N/A; keep for 5986 lab use
+        # For domain-joined hosts prefer:
+        # ansible_winrm_transport: kerberos   # needs kinit on the control node
