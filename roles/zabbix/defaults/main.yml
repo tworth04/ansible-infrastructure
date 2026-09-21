@@ -10,7 +10,7 @@ pkg:
 selinux_allow_zabbix_run_sudo: false
 
 mysql_user: "zbx_monitor"
-mysql_pass: "Z@bb1x"
+mysql_pass: "{{ vault_zabbix_password }}"
 
 zabbix_agent_install_agent_only: true
 zabbix_agent_packages:
